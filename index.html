@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Holobionte IA — Consultoría de Inteligencia Artificial</title>
+<meta name="description" content="Consultoría remota que integra inteligencia artificial como extensión natural de tu equipo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #060D1B;
+    --navy-mid: #0B1629;
+    --navy-light: #0F1E38;
+    --cyan: #E8F4FF;
+    --teal: #00D9A5;
+    --teal-dk: #00B386;
+    --teal-glow: rgba(0,217,165,0.18);
+    --amber: #FFB800;
+    --amber-dk: #E5A600;
+    --amber-glow: rgba(255,184,0,0.18);
+    --muted: #6A7FA3;
+    --muted-mid: #8892B0;
+    --glass-bg: rgba(255,255,255,0.035);
+    --glass-border: rgba(255,255,255,0.07);
+    --glass-border-hover: rgba(0,217,165,0.28);
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --ease-expo: cubic-bezier(0.16,1,0.3,1);
+    --ease-smooth: cubic-bezier(0.25,0.1,0.25,1);
+    --sec-py: clamp(80px,10vw,140px);
+    --sec-px: clamp(24px,6vw,80px);
+    --maxw: 1200px;
+    --gap: clamp(16px,2vw,32px);
+    --pad: clamp(24px,2.5vw,40px);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+  body {
+    background: var(--navy);
+    color: var(--cyan);
+    font-family: var(--font-body);
+    font-size: clamp(12px,0.9vw,14px);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+  h1,h2 { font-family: var(--font-display); font-weight: 800; line-height: 1.1; letter-spacing: -0.03em; }
+  h3 { font-family: var(--font-body); font-weight: 500; line-height: 1.3; letter-spacing: -0.01em; }
+  a { text-decoration: none; }
+  button { font-family: var(--font-body); cursor: pointer; }
+  input, textarea { font-family: var(--font-body); }
+  img { display: block; max-width: 100%; }
+  ul { list-style: none; }
+
+  /* ===== CANVAS BG ===== */
+  #neural-canvas {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    width: 100%; height: 100%;
+  }
+
+  /* ===== SKIP ===== */
+  .skip { position: absolute; top: -100%; left: 50%; transform: translateX(-50%); background: var(--teal); color: var(--navy); padding: 8px 16px; border-radius: 0 0 8px 8px; font-weight: 600; z-index: 9999; transition: top .25s; }
+  .skip:focus { top: 0; }
+
+  /* ===== NAV ===== */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100; height: 72px;
+    padding: 0 var(--sec-px);
+    display: flex; align-items: center; justify-content: space-between;
+    transition: background .3s, backdrop-filter .3s, border-color .3s;
+  }
+  nav.scrolled {
+    background: rgba(6,13,27,0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .logo {
+    font-family: var(--font-display); font-weight: 800; font-size: 18px;
+    color: var(--cyan); display: flex; align-items: center; gap: 7px;
+    letter-spacing: 0.04em;
+  }
+  .logo-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); flex-shrink: 0; box-shadow: 0 0 8px var(--teal); }
+  .nav-links { display: flex; align-items: center; gap: 28px; }
+  .nav-links a {
+    font-size: 14px; font-weight: 400; color: var(--muted-mid); letter-spacing: .02em;
+    padding-bottom: 3px; border-bottom: 1px solid transparent;
+    transition: color .2s, border-color .2s;
+  }
+  .nav-links a:hover, .nav-links a.active { color: var(--teal); border-color: var(--teal); }
+  .btn-nav {
+    padding: 8px 20px; border-radius: 50px; border: 1px solid var(--teal);
+    background: transparent; color: var(--teal); font-size: 13px; font-weight: 500;
+    letter-spacing: .02em; transition: background .25s, color .25s;
+  }
+  .btn-nav:hover { background: var(--teal); color: var(--navy); }
+  .hamburger { display: none; background: none; border: none; color: var(--cyan); padding: 4px; }
+  .mobile-menu {
+    position: fixed; inset: 0; z-index: 200; background: var(--navy);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px;
+    opacity: 0; pointer-events: none; transition: opacity .3s;
+  }
+  .mobile-menu.open { opacity: 1; pointer-events: auto; }
+  .mobile-menu a { font-family: var(--font-display); font-weight: 700; font-size: 28px; color: var(--cyan); }
+  .mobile-menu a:hover { color: var(--teal); }
+  .close-btn { position: absolute; top: 24px; right: 24px; background: none; border: none; color: var(--cyan); }
+
+  /* ===== SECTION CONTAINER ===== */
+  .container { padding: var(--sec-py) var(--sec-px); max-width: var(--maxw); margin: 0 auto; }
+  section { position: relative; z-index: 1; }
+
+  /* ===== SECTION HEADER ===== */
+  .sec-label {
+    font-size: clamp(10px,.85vw,12px); font-weight: 500; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--teal);
+  }
+  .sec-headline {
+    font-size: clamp(30px,4.5vw,52px); color: var(--cyan);
+    margin-top: 12px; margin-bottom: 16px;
+  }
+  .sec-desc { color: var(--muted); max-width: 580px; margin-bottom: 52px; }
+  .sec-header-center .sec-desc { margin-left: auto; margin-right: auto; }
+  .sec-header-center { text-align: center; }
+
+  /* ===== GLASS CARD ===== */
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    transition: transform .3s var(--ease-smooth), border-color .3s, box-shadow .3s;
+  }
+  .glass:hover {
+    transform: translateY(-4px);
+    border-color: var(--glass-border-hover);
+    box-shadow: 0 12px 40px rgba(0,217,165,0.08);
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn-primary {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 16px 34px; border-radius: 50px; border: none;
+    background: linear-gradient(135deg, var(--teal) 0%, var(--teal-dk) 100%);
+    color: var(--navy); font-weight: 600; font-size: clamp(13px,1vw,15px);
+    letter-spacing: .02em; transition: all .4s var(--ease-smooth);
+  }
+  .btn-primary:hover { background: linear-gradient(135deg, var(--amber) 0%, var(--amber-dk) 100%); transform: scale(1.04); box-shadow: 0 0 32px rgba(255,184,0,.28); }
+  .btn-outline {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 24px; border-radius: 50px; border: 1px solid rgba(255,255,255,.12);
+    background: transparent; color: var(--cyan); font-size: 14px; font-weight: 500;
+    transition: all .3s;
+  }
+  .btn-outline:hover { border-color: var(--teal); color: var(--teal); }
+
+  /* ===== INPUTS ===== */
+  .glass-input {
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,.1);
+    border-radius: 10px; padding: 14px 18px; color: var(--cyan);
+    font-size: 15px; width: 100%; outline: none;
+    transition: border-color .25s;
+  }
+  .glass-input::placeholder { color: var(--muted); }
+  .glass-input:focus { border-color: var(--teal); }
+
+  /* ===== TEXT LINK ===== */
+  .text-link { display: inline-flex; align-items: center; gap: 6px; color: var(--teal); font-weight: 500; transition: gap .2s; }
+  .text-link:hover { gap: 10px; }
+  .text-link svg { transition: transform .2s; }
+  .text-link:hover svg { transform: translateX(3px); }
+
+  /* ===== ANIMATIONS (CSS) ===== */
+  @keyframes bounce-y { 0%,100%{transform:translateY(0)}50%{transform:translateY(8px)} }
+  @keyframes fade-in-up { from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none} }
+  @keyframes spin-slow { to{transform:rotate(360deg)} }
+  @keyframes pulse-ring { 0%{transform:scale(1);opacity:.6}100%{transform:scale(1.8);opacity:0} }
+  @keyframes drift { 0%,100%{transform:translateY(0) rotate(0deg)}33%{transform:translateY(-10px) rotate(1deg)}66%{transform:translateY(6px) rotate(-1deg)} }
+
+  .scroll-bounce { animation: bounce-y 1.5s ease-in-out infinite; }
+
+  /* Reveal animations */
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity .7s var(--ease-expo), transform .7s var(--ease-expo); }
+  .reveal.visible { opacity: 1; transform: none; }
+  .reveal-left { opacity: 0; transform: translateX(-24px); transition: opacity .7s var(--ease-expo), transform .7s var(--ease-expo); }
+  .reveal-left.visible { opacity: 1; transform: none; }
+  .reveal-right { opacity: 0; transform: translateX(24px); transition: opacity .7s var(--ease-expo), transform .7s var(--ease-expo); }
+  .reveal-right.visible { opacity: 1; transform: none; }
+  .reveal-scale { opacity: 0; transform: scale(.92); transition: opacity .65s var(--ease-expo), transform .65s var(--ease-expo); }
+  .reveal-scale.visible { opacity: 1; transform: scale(1); }
+  .delay-1 { transition-delay: .1s !important; }
+  .delay-2 { transition-delay: .2s !important; }
+  .delay-3 { transition-delay: .3s !important; }
+  .delay-4 { transition-delay: .4s !important; }
+
+  /* ===== HERO ===== */
+  #hero {
+    position: relative; height: 100vh; min-height: 600px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 0 var(--sec-px);
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0; z-index: -1;
+    background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(0,217,165,.07) 0%, transparent 70%),
+                linear-gradient(180deg, rgba(6,13,27,.2) 0%, rgba(6,13,27,.96) 100%);
+  }
+  .hero-label { display: block; margin-bottom: 20px; }
+  .hero-headline {
+    font-size: clamp(44px,8.5vw,100px); max-width: 860px; margin-bottom: 28px;
+    background: linear-gradient(135deg, #E8F4FF 30%, rgba(0,217,165,.85) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .hero-sub { color: var(--muted-mid); max-width: 540px; margin-bottom: 44px; font-size: clamp(15px,1.2vw,19px); font-weight: 300; }
+  .hero-cta-row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; justify-content: center; }
+  .hero-scroll-ind { position: absolute; bottom: 36px; display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--muted); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+  .hero-orbs { position: absolute; inset: 0; z-index: -2; pointer-events: none; overflow: hidden; }
+  .orb { position: absolute; border-radius: 50%; filter: blur(80px); animation: drift 8s ease-in-out infinite; }
+  .orb-1 { width: 400px; height: 400px; background: rgba(0,217,165,.06); top: -80px; right: -100px; animation-delay: 0s; }
+  .orb-2 { width: 300px; height: 300px; background: rgba(255,184,0,.05); bottom: 40px; left: -80px; animation-delay: 3s; }
+
+  /* ===== PROBLEM ===== */
+  .problem-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: var(--gap); }
+  .problem-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+
+  /* ===== SERVICES ===== */
+  .service-cards { display: flex; flex-direction: column; gap: var(--gap); }
+  .service-card { padding: var(--pad); display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px; }
+  .service-badge { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; margin-bottom: 16px; }
+  .service-features { flex: 1; min-width: 220px; }
+  .service-features li { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; color: var(--muted-mid); font-size: 14px; }
+  .check-icon { color: var(--teal); flex-shrink: 0; }
+
+  /* ===== METHODOLOGY (HORIZONTAL SCROLL) ===== */
+  #metodologia { height: 400vh; }
+  .meto-sticky { position: sticky; top: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; justify-content: center; background: radial-gradient(ellipse at center, rgba(0,217,165,.04) 0%, transparent 65%), var(--navy); }
+  .meto-header { padding: 0 var(--sec-px); margin-bottom: 40px; }
+  .meto-strip { display: flex; gap: 4vw; padding: 0 var(--sec-px); will-change: transform; align-items: stretch; flex: 1; }
+  .meto-card { flex-shrink: 0; width: clamp(300px,70vw,640px); padding: 56px; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; min-height: 340px; }
+  .meto-num { position: absolute; top: 16px; right: 24px; font-family: var(--font-display); font-weight: 800; font-size: clamp(90px,14vw,160px); color: rgba(0,217,165,.06); line-height: 1; z-index: 0; }
+  .meto-content { position: relative; z-index: 1; }
+  .meto-progress-wrap { position: absolute; bottom: 32px; left: var(--sec-px); right: var(--sec-px); height: 2px; background: rgba(255,255,255,.06); border-radius: 1px; }
+  .meto-progress { height: 100%; background: linear-gradient(90deg, var(--teal), var(--amber)); border-radius: 1px; transform-origin: left; transform: scaleX(0); }
+
+  /* ===== DOUBLE LENS ===== */
+  .lens-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(300px,1fr)); gap: var(--gap); }
+  .lens-card-inner { padding: var(--pad); }
+  .lens-icon-wrap { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
+
+  /* ===== SECTORS ===== */
+  .sectors-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: var(--gap); }
+  .sector-card { padding: var(--pad); }
+
+  /* ===== PROCESS TIMELINE ===== */
+  .timeline { position: relative; max-width: 700px; margin: 0 auto; padding-left: 48px; }
+  .timeline-line { position: absolute; left: 16px; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,.08); }
+  .timeline-item { position: relative; margin-bottom: 44px; }
+  .timeline-item:last-child { margin-bottom: 0; }
+  .timeline-dot { position: absolute; left: -38px; top: 6px; width: 12px; height: 12px; border-radius: 50%; }
+  .timeline-dot::after { content:''; position:absolute;inset:-4px;border-radius:50%;border:1px solid currentColor;opacity:.3; }
+  .timeline-dot-pulse::before { content:''; position:absolute;inset:0;border-radius:50%;background:currentColor;animation: pulse-ring 1.8s ease-out infinite; }
+
+  /* ===== ABOUT ===== */
+  .about-row { display: flex; flex-wrap: wrap; gap: 48px; align-items: center; }
+  .about-text { flex: 1 1 55%; min-width: 290px; }
+  .about-visual { flex: 1 1 35%; min-width: 260px; }
+  .about-stats { display: flex; gap: 40px; flex-wrap: wrap; margin-top: 36px; }
+  .stat-num { font-family: var(--font-display); font-weight: 800; font-size: clamp(28px,3vw,44px); color: var(--teal); }
+  .stat-lbl { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: 2px; }
+  .about-img-placeholder { background: linear-gradient(135deg, var(--navy-light) 0%, rgba(0,217,165,.1) 100%); border-radius: 16px; height: 340px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--glass-border); overflow: hidden; position: relative; }
+  .about-img-placeholder::before { content:''; position:absolute;inset:0;background:radial-gradient(circle at 60% 40%, rgba(0,217,165,.15), transparent 60%); }
+
+  /* ===== CASES ===== */
+  .cases-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(300px,1fr)); gap: var(--gap); }
+  .case-card { overflow: hidden; }
+  .case-img { height: 180px; background: linear-gradient(135deg, var(--navy-light), rgba(0,217,165,.08)); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+  .case-body { padding: var(--pad); }
+  .case-metric { font-family: var(--font-display); font-weight: 800; font-size: clamp(24px,2.5vw,32px); margin-bottom: 16px; }
+
+  /* ===== RESOURCES ===== */
+  .resources-row { display: flex; flex-wrap: wrap; gap: 48px; }
+  .resource-list li { padding: 16px 0; border-bottom: 1px solid var(--glass-border); color: var(--cyan); font-size: clamp(14px,1vw,17px); display: flex; align-items: center; gap: 12px; }
+  .resource-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: rgba(0,217,165,.1); }
+
+  /* ===== FAQ ===== */
+  .faq-wrap { max-width: 740px; margin: 0 auto; }
+  .faq-item { margin-bottom: 10px; overflow: hidden; }
+  .faq-btn { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 22px 24px; background: none; border: none; color: var(--cyan); font-size: clamp(14px,1.1vw,17px); font-weight: 500; text-align: left; cursor: pointer; gap: 16px; }
+  .faq-chevron { flex-shrink: 0; transition: transform .3s var(--ease-smooth); color: var(--muted); }
+  .faq-item.open .faq-chevron { transform: rotate(180deg); color: var(--teal); }
+  .faq-answer { max-height: 0; overflow: hidden; transition: max-height .35s var(--ease-smooth); }
+  .faq-answer p { padding: 0 24px 24px; color: var(--muted-mid); line-height: 1.75; }
+  .faq-item.open .faq-answer { max-height: 240px; }
+
+  /* ===== CONTACT ===== */
+  .contact-row { display: flex; flex-wrap: wrap; gap: 48px; }
+  .contact-form-wrap { flex: 1 1 55%; min-width: 290px; }
+  .contact-info-wrap { flex: 1 1 35%; min-width: 250px; }
+  .contact-form { padding: var(--pad); display: grid; gap: 14px; }
+  .contact-info-item { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .contact-info-icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(0,217,165,.08); border: 1px solid rgba(0,217,165,.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .social-row { display: flex; gap: 10px; margin-top: 24px; }
+  .social-btn { width: 42px; height: 42px; border-radius: 50%; border: 1px solid var(--glass-border); background: var(--glass-bg); display: flex; align-items: center; justify-content: center; color: var(--muted-mid); transition: border-color .25s, color .25s; }
+  .social-btn:hover { border-color: var(--teal); color: var(--teal); }
+
+  /* ===== FOOTER ===== */
+  footer { background: #030810; padding: clamp(40px,5vw,80px) var(--sec-px); position: relative; z-index: 1; }
+  .footer-inner { max-width: var(--maxw); margin: 0 auto; }
+  .footer-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 32px; margin-bottom: 32px; }
+  .footer-links { display: flex; gap: 24px; flex-wrap: wrap; align-items: center; }
+  .footer-links a { font-size: 14px; color: var(--muted); transition: color .2s; }
+  .footer-links a:hover { color: var(--cyan); }
+  .footer-mid { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; padding-bottom: 28px; border-bottom: 1px solid rgba(255,255,255,.04); margin-bottom: 24px; }
+  .footer-legal { display: flex; gap: 16px; }
+  .footer-legal a { font-size: 12px; color: var(--muted); transition: color .2s; }
+  .footer-legal a:hover { color: var(--cyan); }
+  .footer-copy { text-align: center; font-size: 12px; color: var(--muted); }
+
+  /* ===== GRADIENT DIVIDERS ===== */
+  .grad-sep { height: 1px; background: linear-gradient(90deg, transparent, rgba(0,217,165,.2), transparent); margin: 0; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    .nav-links, .btn-nav { display: none; }
+    .hamburger { display: flex; }
+    #metodologia { height: 300vh; }
+    .meto-card { width: clamp(280px, 85vw, 400px); padding: 36px; }
+    .about-visual { display: none; }
+    .contact-row { flex-direction: column; }
+    .timeline { padding-left: 32px; }
+    .timeline-dot { left: -22px; }
+  }
+  @media (max-width: 520px) {
+    .hero-cta-row { flex-direction: column; align-items: stretch; }
+    .hero-cta-row .btn-outline { justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Neural Network Canvas -->
+<canvas id="neural-canvas" aria-hidden="true"></canvas>
+
+<!-- Skip link -->
+<a href="#hero" class="skip" id="skip-link">Saltar al contenido</a>
+
+<!-- NAVBAR -->
+<nav id="navbar" role="navigation" aria-label="Navegación principal">
+  <a href="#hero" class="logo" aria-label="Holobionte IA — inicio">
+    HOLOBIONTE <span class="logo-dot" aria-hidden="true"></span>
+  </a>
+  <div class="nav-links" role="menubar">
+    <a href="#servicios" role="menuitem">Servicios</a>
+    <a href="#metodologia" role="menuitem">Metodología</a>
+    <a href="#casos" role="menuitem">Casos</a>
+    <a href="#sobre" role="menuitem">Sobre</a>
+    <a href="#contacto" role="menuitem">Contacto</a>
+    <button class="btn-nav" onclick="scrollToSection('contacto')">Diagnóstico Express</button>
+  </div>
+  <button class="hamburger" aria-label="Abrir menú" aria-expanded="false" id="hamburger-btn">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu" role="dialog" aria-label="Menú móvil">
+  <button class="close-btn" id="close-menu" aria-label="Cerrar menú">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <a href="#servicios" onclick="closeMobileMenu()">Servicios</a>
+  <a href="#metodologia" onclick="closeMobileMenu()">Metodología</a>
+  <a href="#casos" onclick="closeMobileMenu()">Casos</a>
+  <a href="#sobre" onclick="closeMobileMenu()">Sobre</a>
+  <a href="#contacto" onclick="closeMobileMenu()">Contacto</a>
+  <button class="btn-primary" onclick="closeMobileMenu(); scrollToSection('contacto')">Diagnóstico Express</button>
+</div>
+
+<main>
+
+<!-- ============================== HERO ============================== -->
+<header id="hero" role="banner">
+  <div class="hero-bg"></div>
+  <div class="hero-orbs" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+  </div>
+
+  <span class="sec-label hero-label" id="hero-label" style="opacity:0">Consultoría IA Remota</span>
+  <h1 class="hero-headline" id="hero-h1" style="opacity:0">
+    Tu empresa es un organismo.<br>La IA es su nuevo tejido vivo.
+  </h1>
+  <p class="hero-sub" id="hero-sub" style="opacity:0">
+    Consultoría remota que integra inteligencia artificial como extensión natural de tu equipo — no como parche tecnológico.
+  </p>
+  <div class="hero-cta-row" id="hero-cta" style="opacity:0">
+    <button class="btn-primary" onclick="scrollToSection('contacto')">
+      Diagnóstico Express Gratis
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+    <a href="#casos" class="btn-outline" onclick="event.preventDefault(); scrollToSection('casos')">
+      Ver casos reales
+    </a>
+  </div>
+  <div class="hero-scroll-ind scroll-bounce" id="hero-scroll" style="opacity:0" aria-hidden="true">
+    <span>Scroll</span>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  </div>
+</header>
+
+<div class="grad-sep"></div>
+
+<!-- ============================== PROBLEM ============================== -->
+<section id="problema">
+  <div class="container">
+    <div class="reveal">
+      <span class="sec-label">El Problema</span>
+      <h2 class="sec-headline">¿Por qué la mayoría de las consultorías IA fallan?</h2>
+    </div>
+    <div class="problem-grid">
+      <div class="glass reveal delay-1" style="padding:var(--pad)">
+        <div class="problem-icon" style="background:rgba(255,184,0,.1)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        </div>
+        <h3 style="font-size:clamp(17px,1.8vw,22px);color:var(--cyan);margin-bottom:12px">Suplantan en lugar de potenciar</h3>
+        <p style="color:var(--muted);font-size:14px">Llegan, reemplazan al equipo, y se van. Dejan vacío, no valor. La organización queda más frágil que antes.</p>
+      </div>
+      <div class="glass reveal delay-2" style="padding:var(--pad)">
+        <div class="problem-icon" style="background:rgba(0,217,165,.1)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00D9A5" stroke-width="2"><rect x="2" y="7" width="6" height="10" rx="1"/><rect x="9" y="4" width="6" height="13" rx="1"/><rect x="16" y="10" width="6" height="7" rx="1"/><line x1="5" y1="17" x2="5" y2="20"/><line x1="12" y1="17" x2="12" y2="20"/><line x1="19" y1="17" x2="19" y2="20"/></svg>
+        </div>
+        <h3 style="font-size:clamp(17px,1.8vw,22px);color:var(--cyan);margin-bottom:12px">Trabajan en silos aislados</h3>
+        <p style="color:var(--muted);font-size:14px">Sin integración real con procesos, cultura o KPIs existentes. La tecnología nunca se convierte en hábito operativo.</p>
+      </div>
+      <div class="glass reveal delay-3" style="padding:var(--pad)">
+        <div class="problem-icon" style="background:rgba(255,184,0,.1)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        </div>
+        <h3 style="font-size:clamp(17px,1.8vw,22px);color:var(--cyan);margin-bottom:12px">Crean dependencia tóxica</h3>
+        <p style="color:var(--muted);font-size:14px">Nadie sabe cómo funciona lo que implementaron. La empresa queda atada al proveedor indefinidamente.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== SERVICES ============================== -->
+<section id="servicios">
+  <div class="container">
+    <div class="reveal">
+      <span class="sec-label">Servicios</span>
+      <h2 class="sec-headline">Consultoría que se integra, no que suplanta</h2>
+      <p class="sec-desc">Tres niveles de profundidad para que la IA se convierta en tejido conectivo de tu organización.</p>
+    </div>
+    <div class="service-cards">
+      <div class="glass service-card reveal delay-1">
+        <div style="flex:1;min-width:260px">
+          <span class="service-badge" style="background:rgba(0,217,165,.12);color:var(--teal)">Implementación</span>
+          <h3 style="font-size:clamp(17px,1.8vw,22px);color:var(--cyan);margin-bottom:12px">Nivel 1: Implementación Táctica</h3>
+          <p style="color:var(--muted);margin-bottom:16px;font-size:14px">Identificación y automatización de procesos repetitivos usando herramientas IA existentes. Integración con flujos de trabajo actuales.</p>
+          <p style="font-weight:700;font-size:20px;color:var(--teal)">Desde $1,500/mes</p>
+        </div>
+        <ul class="service-features">
+          <li><span class="check-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Diagnóstico de procesos automatizables</li>
+          <li><span class="check-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Implementación de herramientas IA</li>
+          <li><span class="check-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Capacitación del equipo</li>
+          <li><span class="check-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Métricas de ROI</li>
+        </ul>
+      </div>
+      <div class="glass service-card reveal delay-2" style="border-color:rgba(255,184,0,.2)">
+        <div style="flex:1;min-width:260px">
+          <span class="service-badge" style="background:rgba(255,184,0,.12);color:var(--amber)">Estrategia</span>
+          <h3 style="font-size:clamp(17px,1.8vw,22px);color:var(--cyan);margin-bottom:12px">Nivel 2: Estrategia Operativa</h3>
+          <p style="color:var(--muted);margin-bottom:16px;font-size:14px">Reconfiguración de procesos clave con IA integrada. Acompañamiento estratégico continuo con métricas de adopción.</p>
+          <p style="font-weight:700;font-size:20px;color:var(--amber)">Desde $3,500/mes</p>
+        </div>
+        <ul class="service-features">
+          <li><span class="check-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Todo el Nivel 1</li>
+          <li><span class="check-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Rediseño de 3–5 procesos core</li>
+          <li><span class="check-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>KPIs de adopción cultural</li>
+          <li><span class="check-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Soporte prioritario</li>
+        </ul>
+      </div>
+      <div class="glass service-card reveal delay-3">
+        <div style="flex:1;min-width:260px">
+          <span class="service-badge" style="background:rgba(0,217,165,.12);color:var(--teal)">Transformación</span>
+          <h3 style="font-size:clamp(17px,1.8vw,22px);color:var(--cyan);margin-bottom:12px">Nivel 3: Transformación Cultural</h3>
+          <p style="color:var(--muted);margin-bottom:16px;font-size:14px">Transformación organizacional completa. La IA como extensión del equipo humano, integrada en el ADN de la empresa.</p>
+          <p style="font-weight:700;font-size:20px;color:var(--teal)">Desde $6,500/mes</p>
+        </div>
+        <ul class="service-features">
+          <li><span class="check-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Todo el Nivel 2</li>
+          <li><span class="check-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Programa de alfabetización IA</li>
+          <li><span class="check-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Mentoría C-suite</li>
+          <li><span class="check-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>Comité de innovación IA</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="grad-sep"></div>
+
+<!-- ============================== METHODOLOGY (HORIZONTAL SCROLL) ============================== -->
+<section id="metodologia">
+  <div class="meto-sticky" id="meto-sticky">
+    <div class="meto-header reveal">
+      <span class="sec-label">Metodología</span>
+      <h2 class="sec-headline" style="margin-bottom:0">Un proceso de integración, no imposición</h2>
+    </div>
+    <div class="meto-strip" id="meto-strip">
+      <div class="glass meto-card">
+        <span class="meto-num" aria-hidden="true">01</span>
+        <div class="meto-content">
+          <span class="sec-label" style="color:var(--muted)">Semana 1–2</span>
+          <h3 style="font-size:clamp(18px,2vw,26px);color:var(--cyan);margin:16px 0 14px">Diagnóstico del ecosistema</h3>
+          <p style="color:var(--muted);line-height:1.75;font-size:14px">Mapeamos tu operación actual: procesos, equipos, cultura, tech stack. Identificamos puntos de fricción donde la IA puede crear valor real.</p>
+        </div>
+      </div>
+      <div class="glass meto-card">
+        <span class="meto-num" aria-hidden="true">02</span>
+        <div class="meto-content">
+          <span class="sec-label" style="color:var(--muted)">Semana 3–4</span>
+          <h3 style="font-size:clamp(18px,2vw,26px);color:var(--cyan);margin:16px 0 14px">Diseño de soluciones híbridas</h3>
+          <p style="color:var(--muted);line-height:1.75;font-size:14px">Prototipamos flujos de trabajo humano-IA. Cada solución se adapta a tu contexto: equipo, presupuesto, objetivos.</p>
+        </div>
+      </div>
+      <div class="glass meto-card">
+        <span class="meto-num" aria-hidden="true">03</span>
+        <div class="meto-content">
+          <span class="sec-label" style="color:var(--muted)">Semana 5–8</span>
+          <h3 style="font-size:clamp(18px,2vw,26px);color:var(--cyan);margin:16px 0 14px">Implementación gradual</h3>
+          <p style="color:var(--muted);line-height:1.75;font-size:14px">Pilotos controlados, retroalimentación continua. El equipo aprende mientras la IA se integra sin interrumpir operaciones.</p>
+        </div>
+      </div>
+      <div class="glass meto-card">
+        <span class="meto-num" aria-hidden="true">04</span>
+        <div class="meto-content">
+          <span class="sec-label" style="color:var(--muted)">Mes 3+</span>
+          <h3 style="font-size:clamp(18px,2vw,26px);color:var(--cyan);margin:16px 0 14px">Evolución continua</h3>
+          <p style="color:var(--muted);line-height:1.75;font-size:14px">Métricas de adopción, ajustes iterativos. La IA se convierte en hábito operativo — parte natural del organismo empresa.</p>
+        </div>
+      </div>
+    </div>
+    <div class="meto-progress-wrap">
+      <div class="meto-progress" id="meto-progress"></div>
+    </div>
+  </div>
+</section>
+
+<div class="grad-sep"></div>
+
+<!-- ============================== DOUBLE LENS ============================== -->
+<section id="doble-lente">
+  <div class="container">
+    <div class="reveal sec-header-center" style="text-align:center">
+      <span class="sec-label">Diferencial</span>
+      <h2 class="sec-headline">Doble lente: IA + industria</h2>
+      <p class="sec-desc">Cada proyecto cuenta con dos profesionales: un especialista en modelos de IA y uno con experiencia real en tu sector.</p>
+    </div>
+    <div class="lens-grid">
+      <div class="glass reveal-left">
+        <div class="lens-card-inner">
+          <div class="lens-icon-wrap" style="background:rgba(0,217,165,.1)">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D9A5" stroke-width="1.8"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-1.04-3.68 2.5 2.5 0 0 1-1.04-3.68 2.5 2.5 0 0 1 2.54-3.68A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 1.04-3.68 2.5 2.5 0 0 0 1.04-3.68 2.5 2.5 0 0 0-2.54-3.68A2.5 2.5 0 0 0 14.5 2Z"/></svg>
+          </div>
+          <h3 style="font-size:clamp(18px,2vw,24px);color:var(--cyan);margin-bottom:14px">Especialista en Inteligencia Artificial</h3>
+          <p style="color:var(--muted);font-size:14px">Conocimiento profundo de modelos, herramientas, APIs y arquitecturas. Sabe qué es posible, qué no, y cómo implementarlo con eficiencia real.</p>
+        </div>
+      </div>
+      <div class="glass reveal-right">
+        <div class="lens-card-inner">
+          <div class="lens-icon-wrap" style="background:rgba(255,184,0,.1)">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FFB800" stroke-width="1.8"><path d="M3 21h18"/><path d="M9 8h1"/><path d="M9 12h1"/><path d="M9 16h1"/><path d="M14 8h1"/><path d="M14 12h1"/><path d="M14 16h1"/><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"/></svg>
+          </div>
+          <h3 style="font-size:clamp(18px,2vw,24px);color:var(--cyan);margin-bottom:14px">Especialista en tu Industria</h3>
+          <p style="color:var(--muted);font-size:14px">Ha trabajado en tu sector. Conoce los retos regulatorios, los KPIs que importan, y cómo se toman decisiones en organizaciones como la tuya.</p>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:40px">
+      <a href="#sobre" class="text-link" onclick="event.preventDefault(); scrollToSection('sobre')">
+        Conoce a nuestro equipo
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== SECTORS ============================== -->
+<section id="sectores" style="background:rgba(0,0,0,.2)">
+  <div class="container">
+    <div class="reveal">
+      <span class="sec-label">Sectores</span>
+      <h2 class="sec-headline">Donde la IA genera impacto real</h2>
+      <p class="sec-desc">Experiencia probada en industrias reguladas y de alta complejidad.</p>
+    </div>
+    <div class="sectors-grid">
+      <div class="glass sector-card reveal delay-1">
+        <div style="color:var(--teal);margin-bottom:16px">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a5 5 0 1 0 0 10A5 5 0 0 0 12 2Z"/><path d="M12 14c-5 0-9 2.24-9 5v1h18v-1c0-2.76-4-5-9-5Z"/><line x1="12" y1="8" x2="12" y2="12" stroke-width="2.5"/><line x1="10" y1="10" x2="14" y2="10" stroke-width="2.5"/></svg>
+        </div>
+        <h3 style="font-size:clamp(17px,1.8vw,22px);color:var(--cyan);margin-bottom:10px">Salud</h3>
+        <p style="color:var(--muted);font-size:14px">Automatización de documentación clínica, análisis de imágenes, chatbots de triaje, optimización de agendas.</p>
+      </div>
+      <div class="glass sector-card reveal delay-2">
+        <div style="color:var(--amber);margin-bottom:16px">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <h3 style="font-size:clamp(17px,1.8vw,22px);color:var(--cyan);margin-bottom:10px">Finanzas & Fintech</h3>
+        <p style="color:var(--muted);font-size:14px">Análisis de riesgo crediticio, detección de fraude, automatización de reportes regulatorios, atención al cliente.</p>
+      </div>
+      <div class="glass sector-card reveal delay-3">
+        <div style="color:var(--teal);margin-bottom:16px">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+        </div>
+        <h3 style="font-size:clamp(17px,1.8vw,22px);color:var(--cyan);margin-bottom:10px">Retail & E-commerce</h3>
+        <p style="color:var(--muted);font-size:14px">Personalización, forecasting de demanda, atención al cliente 24/7, optimización de inventario con IA predictiva.</p>
+      </div>
+      <div class="glass sector-card reveal delay-4">
+        <div style="color:var(--amber);margin-bottom:16px">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
+        </div>
+        <h3 style="font-size:clamp(17px,1.8vw,22px);color:var(--cyan);margin-bottom:10px">Legal & Compliance</h3>
+        <p style="color:var(--muted);font-size:14px">Revisión automatizada de contratos, investigación jurisprudencial, cumplimiento normativo, due diligence asistido.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="grad-sep"></div>
+
+<!-- ============================== PROCESS ============================== -->
+<section id="proceso">
+  <div class="container">
+    <div class="reveal sec-header-center" style="text-align:center">
+      <span class="sec-label">Proceso</span>
+      <h2 class="sec-headline">De diagnóstico a transformación en 4 pasos</h2>
+      <p class="sec-desc" style="margin-left:auto;margin-right:auto">Un camino claro, sin sorpresas. Sabes exactamente qué esperar en cada etapa.</p>
+    </div>
+    <div class="timeline">
+      <div class="timeline-line" aria-hidden="true"></div>
+      <div class="timeline-item reveal delay-1">
+        <div class="timeline-dot timeline-dot-pulse" style="background:var(--teal);color:var(--teal)"></div>
+        <h3 style="font-size:clamp(17px,1.8vw,22px);color:var(--cyan);margin-bottom:8px">Evaluación gratuita</h3>
+        <p style="color:var(--muted);font-size:14px">30 minutos para entender tu situación actual. Sin compromiso. Te decimos honestamente si podemos ayudarte y cómo.</p>
+      </div>
+      <div class="timeline-item reveal delay-2">
+        <div class="timeline-dot" style="background:var(--amber);color:var(--amber)"></div>
+        <h3 style="font-size:clamp(17px,1.8vw,22px);color:var(--cyan);margin-bottom:8px">Propuesta personalizada</h3>
+        <p style="color:var(--muted);font-size:14px">Diseñamos un plan a tu medida: alcance, timeline e inversión. Nada genérico — todo calibrado a tu realidad.</p>
+      </div>
+      <div class="timeline-item reveal delay-3">
+        <div class="timeline-dot" style="background:var(--teal);color:var(--teal)"></div>
+        <h3 style="font-size:clamp(17px,1.8vw,22px);color:var(--cyan);margin-bottom:8px">Implementación con acompañamiento</h3>
+        <p style="color:var(--muted);font-size:14px">Tu equipo nunca está solo. Capacitación continua, soporte prioritario, y ajustes en tiempo real.</p>
+      </div>
+      <div class="timeline-item reveal delay-4">
+        <div class="timeline-dot" style="background:var(--amber);color:var(--amber)"></div>
+        <h3 style="font-size:clamp(17px,1.8vw,22px);color:var(--cyan);margin-bottom:8px">Medición y evolución</h3>
+        <p style="color:var(--muted);font-size:14px">KPIs claros, ajustes iterativos, y una relación de largo plazo. Crecemos contigo, no te abandonamos al entregar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== ABOUT ============================== -->
+<section id="sobre" style="background:rgba(0,0,0,.15)">
+  <div class="container">
+    <div class="reveal">
+      <span class="sec-label">Sobre Nosotros</span>
+      <h2 class="sec-headline">Somos un organismo,<br>no una máquina</h2>
+    </div>
+    <div class="about-row">
+      <div class="about-text reveal-left">
+        <p style="color:var(--muted);margin-bottom:20px;font-size:clamp(15px,1.1vw,18px)">Holobionte nace de la convicción de que la IA no reemplaza a las personas: las potencia. Somos un equipo distribuido entre Perú y el mundo, con experiencia en consultoría estratégica, ingeniería de IA, y operaciones reales en industrias reguladas.</p>
+        <p style="color:var(--muted);font-size:clamp(15px,1.1vw,18px)">Nuestro modelo de consultoría remota permite acceso a talento global sin costos de oficina. Cada proyecto es un ecosistema vivo: crecemos contigo.</p>
+        <div class="about-stats">
+          <div>
+            <div class="stat-num">15+</div>
+            <div class="stat-lbl">Proyectos entregados</div>
+          </div>
+          <div>
+            <div class="stat-num">98%</div>
+            <div class="stat-lbl">Clientes satisfechos</div>
+          </div>
+          <div>
+            <div class="stat-num">3</div>
+            <div class="stat-lbl">Países con presencia</div>
+          </div>
+        </div>
+      </div>
+      <div class="about-visual reveal-right">
+        <div class="about-img-placeholder" role="img" aria-label="Visualización abstracta de red neuronal">
+          <svg width="200" height="160" viewBox="0 0 200 160" fill="none" aria-hidden="true">
+            <circle cx="40" cy="80" r="8" stroke="#00D9A5" stroke-width="1.5" fill="none"/>
+            <circle cx="100" cy="40" r="8" stroke="#00D9A5" stroke-width="1.5" fill="none"/>
+            <circle cx="100" cy="120" r="8" stroke="#FFB800" stroke-width="1.5" fill="none"/>
+            <circle cx="160" cy="80" r="8" stroke="#00D9A5" stroke-width="1.5" fill="none"/>
+            <circle cx="70" cy="55" r="5" fill="rgba(0,217,165,.4)"/>
+            <circle cx="70" cy="105" r="5" fill="rgba(255,184,0,.4)"/>
+            <circle cx="130" cy="55" r="5" fill="rgba(0,217,165,.4)"/>
+            <circle cx="130" cy="105" r="5" fill="rgba(255,184,0,.4)"/>
+            <line x1="40" y1="80" x2="70" y2="55" stroke="rgba(0,217,165,.3)" stroke-width="1"/>
+            <line x1="40" y1="80" x2="70" y2="105" stroke="rgba(0,217,165,.2)" stroke-width="1"/>
+            <line x1="70" y1="55" x2="100" y2="40" stroke="rgba(0,217,165,.3)" stroke-width="1"/>
+            <line x1="70" y1="105" x2="100" y2="120" stroke="rgba(255,184,0,.3)" stroke-width="1"/>
+            <line x1="100" y1="40" x2="130" y2="55" stroke="rgba(0,217,165,.3)" stroke-width="1"/>
+            <line x1="100" y1="120" x2="130" y2="105" stroke="rgba(255,184,0,.3)" stroke-width="1"/>
+            <line x1="130" y1="55" x2="160" y2="80" stroke="rgba(0,217,165,.3)" stroke-width="1"/>
+            <line x1="130" y1="105" x2="160" y2="80" stroke="rgba(0,217,165,.2)" stroke-width="1"/>
+            <line x1="70" y1="55" x2="70" y2="105" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+            <line x1="130" y1="55" x2="130" y2="105" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="grad-sep"></div>
+
+<!-- ============================== CASES ============================== -->
+<section id="casos">
+  <div class="container">
+    <div class="reveal">
+      <span class="sec-label">Casos de Éxito</span>
+      <h2 class="sec-headline">Resultados que hablan</h2>
+      <p class="sec-desc">Impacto medible en industrias reguladas y de alta complejidad operativa.</p>
+    </div>
+    <div class="cases-grid">
+      <div class="glass case-card reveal delay-1">
+        <div class="case-img" aria-hidden="true">
+          <svg width="80" height="60" viewBox="0 0 80 60" fill="none">
+            <rect x="10" y="30" width="12" height="20" fill="rgba(0,217,165,.3)" rx="2"/>
+            <rect x="25" y="18" width="12" height="32" fill="rgba(0,217,165,.5)" rx="2"/>
+            <rect x="40" y="8" width="12" height="42" fill="rgba(0,217,165,.7)" rx="2"/>
+            <rect x="55" y="22" width="12" height="28" fill="rgba(0,217,165,.4)" rx="2"/>
+            <polyline points="10,35 25,22 40,12 55,26" stroke="#00D9A5" stroke-width="2" fill="none"/>
+          </svg>
+        </div>
+        <div class="case-body">
+          <span style="display:inline-block;padding:3px 10px;border-radius:20px;background:rgba(0,217,165,.1);color:var(--teal);font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;margin-bottom:14px">Salud</span>
+          <h3 style="font-size:clamp(16px,1.7vw,20px);color:var(--cyan);margin-bottom:12px">Reducción del 60% en tiempo de documentación clínica</h3>
+          <p style="color:var(--muted);margin-bottom:16px;font-size:14px">Transcripción y estructuración IA para historias clínicas. El médico gana 2 horas por día para dedicarlas al paciente.</p>
+          <div class="case-metric" style="color:var(--teal)">60% más rápido</div>
+          <a href="#contacto" class="text-link" style="font-size:14px" onclick="event.preventDefault(); scrollToSection('contacto')">
+            Ver caso completo
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="glass case-card reveal delay-2">
+        <div class="case-img" aria-hidden="true" style="background:linear-gradient(135deg,var(--navy-light),rgba(255,184,0,.08))">
+          <svg width="80" height="60" viewBox="0 0 80 60" fill="none">
+            <circle cx="40" cy="30" r="22" stroke="rgba(255,184,0,.3)" stroke-width="1"/>
+            <circle cx="40" cy="30" r="14" stroke="rgba(255,184,0,.5)" stroke-width="1"/>
+            <path d="M40 8 A22 22 0 0 1 62 30" stroke="#FFB800" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <text x="33" y="35" fill="rgba(255,184,0,.8)" font-size="11" font-family="sans-serif" font-weight="600">78%</text>
+          </svg>
+        </div>
+        <div class="case-body">
+          <span style="display:inline-block;padding:3px 10px;border-radius:20px;background:rgba(255,184,0,.1);color:var(--amber);font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;margin-bottom:14px">Finanzas</span>
+          <h3 style="font-size:clamp(16px,1.7vw,20px);color:var(--cyan);margin-bottom:12px">Atención al cliente 24/7 sin aumentar personal</h3>
+          <p style="color:var(--muted);margin-bottom:16px;font-size:14px">Chatbot inteligente + triaje automático. Resuelve el 78% de consultas sin intervención humana, con CSAT superior.</p>
+          <div class="case-metric" style="color:var(--amber)">78% autoservicio</div>
+          <a href="#contacto" class="text-link" style="font-size:14px" onclick="event.preventDefault(); scrollToSection('contacto')">
+            Ver caso completo
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="glass case-card reveal delay-3">
+        <div class="case-img" aria-hidden="true">
+          <svg width="100" height="60" viewBox="0 0 100 60" fill="none">
+            <polyline points="5,50 20,35 35,42 50,20 65,28 80,10 95,18" stroke="#00D9A5" stroke-width="2" fill="none"/>
+            <polyline points="5,50 20,35 35,42 50,20 65,28 80,10 95,18 95,55 5,55" fill="rgba(0,217,165,.07)"/>
+            <circle cx="80" cy="10" r="3" fill="#00D9A5"/>
+          </svg>
+        </div>
+        <div class="case-body">
+          <span style="display:inline-block;padding:3px 10px;border-radius:20px;background:rgba(0,217,165,.1);color:var(--teal);font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;margin-bottom:14px">Retail</span>
+          <h3 style="font-size:clamp(16px,1.7vw,20px);color:var(--cyan);margin-bottom:12px">Forecasting de demanda con 94% de precisión</h3>
+          <p style="color:var(--muted);margin-bottom:16px;font-size:14px">Modelo predictivo de demanda semanal. Reducción del 35% en merma de inventario y mejora en disponibilidad de producto.</p>
+          <div class="case-metric" style="color:var(--teal)">94% precisión</div>
+          <a href="#contacto" class="text-link" style="font-size:14px" onclick="event.preventDefault(); scrollToSection('contacto')">
+            Ver caso completo
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== RESOURCES ============================== -->
+<section id="recursos" style="background:rgba(0,0,0,.12)">
+  <div class="container">
+    <div class="reveal">
+      <span class="sec-label">Recursos Gratuitos</span>
+      <h2 class="sec-headline">Tu kit de inicio en IA</h2>
+    </div>
+    <div class="resources-row">
+      <div style="flex:1 1 50%;min-width:280px" class="reveal-left">
+        <ul class="resource-list">
+          <li>
+            <div class="resource-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D9A5" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+            Guía: '10 preguntas antes de contratar IA'
+          </li>
+          <li>
+            <div class="resource-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D9A5" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+            Template: ROI de proyectos IA
+          </li>
+          <li>
+            <div class="resource-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D9A5" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div>
+            Video: 'Cómo evaluar si tu empresa está lista para IA'
+          </li>
+          <li>
+            <div class="resource-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D9A5" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+            Checklist: Preparación de datos para IA
+          </li>
+        </ul>
+      </div>
+      <div style="flex:1 1 40%;min-width:280px" class="reveal-right">
+        <div class="glass" style="padding:var(--pad);text-align:center">
+          <h3 style="font-size:clamp(18px,2vw,24px);color:var(--cyan);margin-bottom:8px">Recibe los recursos en tu email</h3>
+          <p style="color:var(--muted);font-size:14px;margin-bottom:24px">Sin spam. Puedes darte de baja en cualquier momento.</p>
+          <input type="email" placeholder="tu@email.com" class="glass-input" style="margin-bottom:14px" aria-label="Correo electrónico">
+          <button class="btn-primary" style="width:100%" onclick="handleResourcesSubmit(this)">
+            Enviar recursos
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="grad-sep"></div>
+
+<!-- ============================== FAQ ============================== -->
+<section id="faq">
+  <div class="container">
+    <div class="reveal sec-header-center" style="text-align:center">
+      <span class="sec-label">Preguntas Frecuentes</span>
+      <h2 class="sec-headline">Lo que siempre nos preguntan</h2>
+    </div>
+    <div class="faq-wrap">
+      <div class="glass faq-item reveal delay-1">
+        <button class="faq-btn" onclick="toggleFaq(this)" aria-expanded="false">
+          ¿Trabajan solo con empresas grandes?
+          <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-answer"><p>No. Trabajamos con empresas de 10 a 500 empleados. Lo importante no es el tamaño, sino la disposición al cambio y la claridad sobre los objetivos.</p></div>
+      </div>
+      <div class="glass faq-item reveal delay-2">
+        <button class="faq-btn" onclick="toggleFaq(this)" aria-expanded="false">
+          ¿Cuánto tiempo toma ver resultados?
+          <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-answer"><p>Los primeros resultados visibles aparecen entre la semana 4 y 6. La transformación cultural profunda toma entre 3 y 6 meses, dependiendo de la complejidad organizacional.</p></div>
+      </div>
+      <div class="glass faq-item reveal delay-3">
+        <button class="faq-btn" onclick="toggleFaq(this)" aria-expanded="false">
+          ¿Necesitamos tener un equipo técnico?
+          <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-answer"><p>No. Nos integramos con tu equipo actual, sea cual sea su nivel técnico. Capacitamos mientras implementamos: el conocimiento queda en tu organización.</p></div>
+      </div>
+      <div class="glass faq-item reveal delay-4">
+        <button class="faq-btn" onclick="toggleFaq(this)" aria-expanded="false">
+          ¿Cómo manejan la confidencialidad de datos?
+          <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-answer"><p>Firmamos NDAs antes del diagnóstico. Usamos infraestructura segura y cumplimos con normativas locales e internacionales de protección de datos.</p></div>
+      </div>
+      <div class="glass faq-item reveal">
+        <button class="faq-btn" onclick="toggleFaq(this)" aria-expanded="false">
+          ¿Qué pasa si no funciona?
+          <svg class="faq-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="faq-answer"><p>Nuestros contratos incluyen períodos de evaluación claros. Si no ves valor en los plazos acordados, puedes salir sin penalizaciones. Creemos en relaciones de confianza.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== CONTACT ============================== -->
+<section id="contacto" style="background:rgba(0,0,0,.15)">
+  <div class="container">
+    <div class="reveal">
+      <span class="sec-label">Contacto</span>
+      <h2 class="sec-headline">Empecemos la conversación</h2>
+      <p class="sec-desc">Sin compromiso. Te respondemos en menos de 24 horas.</p>
+    </div>
+    <div class="contact-row">
+      <div class="contact-form-wrap reveal-left">
+        <div class="glass contact-form">
+          <input type="text" placeholder="Nombre completo" class="glass-input" required aria-label="Nombre">
+          <input type="email" placeholder="Email" class="glass-input" required aria-label="Email">
+          <input type="text" placeholder="Empresa" class="glass-input" aria-label="Empresa">
+          <select class="glass-input" aria-label="Servicio de interés" style="cursor:pointer">
+            <option value="" style="background:var(--navy)">¿Qué nivel te interesa?</option>
+            <option style="background:var(--navy)">Nivel 1: Implementación Táctica</option>
+            <option style="background:var(--navy)">Nivel 2: Estrategia Operativa</option>
+            <option style="background:var(--navy)">Nivel 3: Transformación Cultural</option>
+            <option style="background:var(--navy)">No lo sé aún</option>
+          </select>
+          <textarea placeholder="¿Qué desafío quieres resolver con IA?" rows="4" class="glass-input" style="resize:vertical" aria-label="Mensaje"></textarea>
+          <button type="button" class="btn-primary" style="width:100%" onclick="handleContactSubmit(this)">
+            Enviar mensaje
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="contact-info-wrap reveal-right">
+        <div class="contact-info-item">
+          <div class="contact-info-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D9A5" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <div>
+            <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:3px">Email</div>
+            <span style="color:var(--cyan);font-weight:500">holobionteia@gmail.com</span>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-info-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D9A5" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.08 6.08l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.03z"/></svg>
+          </div>
+          <div>
+            <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:3px">WhatsApp</div>
+            <span style="color:var(--cyan);font-weight:500">+51 978 799 823</span>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="contact-info-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D9A5" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div>
+            <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:3px">Agenda</div>
+            <a href="#" class="text-link" style="font-size:15px" onclick="event.preventDefault()">Reservar llamada 30 min</a>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px">Redes sociales</div>
+          <div class="social-row">
+            <a href="#" class="social-btn" aria-label="LinkedIn" onclick="event.preventDefault()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+            </a>
+            <a href="#" class="social-btn" aria-label="Twitter / X" onclick="event.preventDefault()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
+            </a>
+            <a href="#" class="social-btn" aria-label="Instagram" onclick="event.preventDefault()">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            </a>
+          </div>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:28px;padding:16px;border:1px solid var(--glass-border);border-radius:10px;background:var(--glass-bg)">
+          📍 Lima, Perú · Trabajando remotamente con el mundo.<br>
+          <span style="color:var(--teal)">Respondemos en menos de 24 horas.</span>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ============================== FOOTER ============================== -->
+<footer role="contentinfo">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="logo" style="margin-bottom:8px">
+          HOLOBIONTE <span class="logo-dot"></span>
+        </div>
+        <p style="color:var(--muted);font-size:14px;max-width:220px">Consultoría remota de inteligencia artificial para organizaciones que quieren crecer.</p>
+      </div>
+      <nav class="footer-links" aria-label="Navegación de pie de página">
+        <a href="#servicios" onclick="event.preventDefault(); scrollToSection('servicios')">Servicios</a>
+        <a href="#metodologia" onclick="event.preventDefault(); scrollToSection('metodologia')">Metodología</a>
+        <a href="#casos" onclick="event.preventDefault(); scrollToSection('casos')">Casos</a>
+        <a href="#sobre" onclick="event.preventDefault(); scrollToSection('sobre')">Sobre</a>
+        <a href="#contacto" onclick="event.preventDefault(); scrollToSection('contacto')">Contacto</a>
+      </nav>
+    </div>
+    <div class="footer-mid">
+      <span style="font-size:13px;color:var(--muted)">Lima, Perú · Trabajando remotamente con el mundo</span>
+      <div class="footer-legal">
+        <a href="#" onclick="event.preventDefault()">Privacidad</a>
+        <a href="#" onclick="event.preventDefault()">Términos</a>
+      </div>
+    </div>
+    <p class="footer-copy">© 2025 Holobionte IA. Todos los derechos reservados.</p>
+  </div>
+</footer>
+
+<script>
+/* ==========================================
+   NEURAL NETWORK CANVAS
+========================================== */
+(function() {
+  const canvas = document.getElementById('neural-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, dpr, particles, rafId, mouse = {x:-9999,y:-9999}, scrollProg = 0;
+  const isMobile = window.innerWidth < 768;
+  const prefersRM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function initParticles() {
+    const n = isMobile ? 45 : Math.min(Math.max(Math.floor(W * H / 16000), 45), 100);
+    particles = [];
+    for (let i = 0; i < n; i++) {
+      particles.push({
+        x: Math.random() * W, y: Math.random() * H,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
+        r: 1.2 + Math.random() * 1.4,
+        phase: Math.random()
+      });
+    }
+  }
+
+  function lerpColor(t) {
+    t = Math.max(0, Math.min(1, t));
+    return [Math.round(0 + 255 * t), Math.round(217 + (184-217)*t), Math.round(165 + (0-165)*t)];
+  }
+
+  let frame = 0;
+  const skip = prefersRM ? 8 : 1;
+
+  function animate() {
+    rafId = requestAnimationFrame(animate);
+    if (++frame % skip !== 0) return;
+    ctx.clearRect(0, 0, W, H);
+
+    const CONN = 150, MOUSE = 180;
+    const n = particles.length;
+
+    for (let i = 0; i < n; i++) {
+      const p = particles[i];
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+      if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+      if (!isMobile) {
+        const dx = p.x - mouse.x, dy = p.y - mouse.y;
+        const d = Math.sqrt(dx*dx + dy*dy);
+        if (d < MOUSE && d > 0) { const f = (MOUSE - d) / MOUSE * 0.7; p.x += dx/d*f; p.y += dy/d*f; }
+      }
+    }
+
+    for (let i = 0; i < n; i++) {
+      for (let j = i+1; j < n; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const d = Math.sqrt(dx*dx + dy*dy);
+        if (d < CONN) {
+          const op = (1 - d/CONN) * 0.18;
+          const t = (particles[i].phase + particles[j].phase) / 2 * 0.3 + scrollProg * 0.7;
+          const [r,g,b] = lerpColor(t);
+          ctx.strokeStyle = `rgba(${r},${g},${b},${op})`;
+          ctx.lineWidth = 0.7;
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+
+    for (let i = 0; i < n; i++) {
+      const p = particles[i];
+      const t = p.phase * 0.3 + scrollProg * 0.7;
+      const [r,g,b] = lerpColor(t);
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r + 3);
+      grad.addColorStop(0, `rgba(${r},${g},${b},0.35)`);
+      grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r + 3, 0, Math.PI*2);
+      ctx.fillStyle = grad; ctx.fill();
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(${r},${g},${b},0.88)`; ctx.fill();
+    }
+  }
+
+  resize(); initParticles(); animate();
+
+  window.addEventListener('resize', () => { resize(); initParticles(); });
+  if (!isMobile) {
+    window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; }, { passive: true });
+  }
+  window.addEventListener('scroll', () => {
+    const s = window.scrollY;
+    const h = document.documentElement.scrollHeight - window.innerHeight;
+    scrollProg = h > 0 ? s / h : 0;
+    updateMeto();
+  }, { passive: true });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) cancelAnimationFrame(rafId);
+    else animate();
+  });
+})();
+
+/* ==========================================
+   NAVBAR
+========================================== */
+const navbar = document.getElementById('navbar');
+const navLinks = document.querySelectorAll('.nav-links a[href]');
+const sections = ['servicios','metodologia','doble-lente','sectores','proceso','sobre','casos','recursos','faq','contacto'];
+
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 80);
+  const pos = window.scrollY + window.innerHeight / 3;
+  let active = '';
+  for (let i = sections.length - 1; i >= 0; i--) {
+    const el = document.getElementById(sections[i]);
+    if (el && el.offsetTop <= pos) { active = sections[i]; break; }
+  }
+  navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + active));
+}, { passive: true });
+
+/* ==========================================
+   MOBILE MENU
+========================================== */
+const mobileMenu = document.getElementById('mobile-menu');
+const hamburgerBtn = document.getElementById('hamburger-btn');
+hamburgerBtn.addEventListener('click', () => {
+  mobileMenu.classList.add('open');
+  hamburgerBtn.setAttribute('aria-expanded', 'true');
+});
+document.getElementById('close-menu').addEventListener('click', closeMobileMenu);
+function closeMobileMenu() {
+  mobileMenu.classList.remove('open');
+  hamburgerBtn.setAttribute('aria-expanded', 'false');
+}
+
+/* ==========================================
+   SMOOTH SCROLL
+========================================== */
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const offset = 72;
+  const top = el.getBoundingClientRect().top + window.scrollY - offset;
+  window.scrollTo({ top, behavior: 'smooth' });
+}
+
+// All nav anchor clicks
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const id = a.getAttribute('href').slice(1);
+    if (id && document.getElementById(id)) {
+      e.preventDefault();
+      scrollToSection(id);
+    }
+  });
+});
+document.getElementById('skip-link').addEventListener('click', e => {
+  e.preventDefault(); scrollToSection('hero');
+});
+
+/* ==========================================
+   HERO ENTRANCE ANIMATION
+========================================== */
+window.addEventListener('load', () => {
+  const prefersRM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const els = [
+    {id:'hero-label', delay:200},
+    {id:'hero-h1', delay:400},
+    {id:'hero-sub', delay:650},
+    {id:'hero-cta', delay:900},
+    {id:'hero-scroll', delay:1100},
+  ];
+  if (prefersRM) {
+    els.forEach(e => { const el = document.getElementById(e.id); if (el) el.style.opacity = '1'; });
+    return;
+  }
+  els.forEach(({id, delay}) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.transition = `opacity 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}ms`;
+    el.style.transform = 'translateY(24px)';
+    setTimeout(() => {
+      el.style.opacity = '1';
+      el.style.transform = 'translateY(0)';
+    }, 50);
+  });
+});
+
+/* ==========================================
+   SCROLL REVEAL (IntersectionObserver)
+========================================== */
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(el => {
+  revealObserver.observe(el);
+});
+
+/* ==========================================
+   METHODOLOGY HORIZONTAL SCROLL
+========================================== */
+const metoSection = document.getElementById('metodologia');
+const metoStrip = document.getElementById('meto-strip');
+const metoProgress = document.getElementById('meto-progress');
+
+function updateMeto() {
+  if (!metoSection || !metoStrip) return;
+  const rect = metoSection.getBoundingClientRect();
+  const sectionH = metoSection.offsetHeight - window.innerHeight;
+  if (sectionH <= 0) return;
+  const progress = Math.max(0, Math.min(1, -rect.top / sectionH));
+  const totalScroll = metoStrip.scrollWidth - window.innerWidth + parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sec-px')) * 2;
+  metoStrip.style.transform = `translateX(${-totalScroll * progress}px)`;
+  if (metoProgress) metoProgress.style.transform = `scaleX(${progress})`;
+}
+
+/* ==========================================
+   FAQ ACCORDION
+========================================== */
+function toggleFaq(btn) {
+  const item = btn.closest('.faq-item');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i => {
+    i.classList.remove('open');
+    i.querySelector('.faq-btn').setAttribute('aria-expanded', 'false');
+  });
+  if (!isOpen) {
+    item.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+  }
+}
+
+/* ==========================================
+   FORM HANDLERS
+========================================== */
+function handleContactSubmit(btn) {
+  const original = btn.innerHTML;
+  btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> ¡Mensaje enviado!';
+  btn.style.background = 'linear-gradient(135deg, #00D9A5, #00B386)';
+  setTimeout(() => { btn.innerHTML = original; btn.style.background = ''; }, 3000);
+}
+
+function handleResourcesSubmit(btn) {
+  const original = btn.innerHTML;
+  btn.innerHTML = '✓ ¡Recursos enviados!';
+  btn.style.background = 'linear-gradient(135deg, #00D9A5, #00B386)';
+  setTimeout(() => { btn.innerHTML = original; btn.style.background = ''; }, 3000);
+}
+</script>
+</body>
+</html>
