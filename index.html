@@ -336,7 +336,33 @@
     .hero-cta-row .btn-outline { justify-content: center; }
   }
 </style>
+  <style>
+  form { max-width: 400px; margin: 40px auto; font-family: Arial, sans-serif; padding: 20px; }
+  input, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; }
+  button { background: #2ea44f; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+  button:hover { background: #22863a; }
+  h2 { text-align: center; color: #333; }
+</style>
 </head>
+  <h2>Contacto</h2>
+<form action="https://formspree.io/f/xeedagog" method="POST">
+  <label>
+    Tu nombre:
+    <input type="text" name="nombre" required>
+  </label>
+  <br><br>
+  <label>
+    Tu email:
+    <input type="email" name="email" required>
+  </label>
+  <br><br>
+  <label>
+    Mensaje:
+    <textarea name="mensaje" rows="4" required></textarea>
+  </label>
+  <br><br>
+  <button type="submit">Enviar</button>
+</form>
 <body>
 
 <!-- Neural Network Canvas -->
@@ -1258,5 +1284,28 @@ function handleResourcesSubmit(btn) {
   setTimeout(() => { btn.innerHTML = original; btn.style.background = ''; }, 3000);
 }
 </script>
+  </script>
+
+<!-- FORMULARIO DE CONTACTO -->
+<h2>Contacto</h2>
+<form action="https://formspree.io/f/xeedagog" method="POST">
+  <label>
+    Tu nombre:
+    <input type="text" name="nombre" required>
+  </label>
+  <br><br>
+  <label>
+    Tu email:
+    <input type="email" name="email" required>
+  </label>
+  <br><br>
+  <label>
+    Mensaje:
+    <textarea name="mensaje" rows="4" required></textarea>
+  </label>
+  <br><br>
+  <button type="submit">Enviar</button>
+</form>
+
 </body>
 </html>
