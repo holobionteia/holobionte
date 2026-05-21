@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Holobionte IA — Consultoría de Inteligencia Artificial</title>
+<meta name="description" content="Consultoría remota que integra inteligencia artificial como extensión natural de tu equipo. Lima, Perú."/>
+<meta property="og:title" content="Holobionte IA — Consultoría de Inteligencia Artificial"/>
+<meta property="og:description" content="Consultoría que integra IA como extensión natural de tu equipo, no como parche tecnológico."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+/* ─────────────────────────────────────────
+   DESIGN TOKENS
+───────────────────────────────────────── */
+:root {
+  --ink:       #080C14;
+  --ink-mid:   #0D1525;
+  --ink-lift:  #111C30;
+  --fog:       #1E2D45;
+  --mist:      #56708A;
+  --haze:      #8A9FBB;
+  --paper:     #C8D8E8;
+  --snow:      #EDF4FC;
+  --jade:      #00C896;
+  --jade-dk:   #009E78;
+  --jade-glow: rgba(0,200,150,.14);
+  --gold:      #E8A020;
+  --gold-dk:   #C88010;
+  --gold-glow: rgba(232,160,32,.14);
+  --red-soft:  #E85050;
+  --font-serif:'Fraunces', Georgia, serif;
+  --font-sans: 'Instrument Sans', system-ui, sans-serif;
+  --ease:      cubic-bezier(.22,1,.36,1);
+  --ease-in:   cubic-bezier(.55,0,1,.45);
+  --py:        clamp(72px,9vw,128px);
+  --px:        clamp(20px,5.5vw,72px);
+  --mw:        1160px;
+  --gap:       clamp(14px,1.8vw,28px);
+  --r:         10px;
+}
+
+/* ─────────────────────────────────────────
+   RESET + BASE
+───────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{background:var(--ink);color:var(--snow);font-family:var(--font-sans);font-size:clamp(13.5px,.92vw,15px);line-height:1.72;overflow-x:hidden}
+h1,h2,h3,h4{line-height:1.08;letter-spacing:-.02em}
+a{text-decoration:none;color:inherit}
+button{font-family:var(--font-sans);cursor:pointer;border:none;background:none}
+img{display:block;max-width:100%}
+ul{list-style:none}
+input,textarea,select{font-family:var(--font-sans)}
+::selection{background:var(--jade);color:var(--ink)}
+
+/* ─────────────────────────────────────────
+   CANVAS BG
+───────────────────────────────────────── */
+#cv{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.55}
+
+/* ─────────────────────────────────────────
+   TYPOGRAPHY SCALE
+───────────────────────────────────────── */
+.t-eyebrow{font-family:var(--font-sans);font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--jade)}
+.t-display{font-family:var(--font-serif);font-weight:300;font-size:clamp(36px,5.5vw,68px);letter-spacing:-.035em;line-height:1.06}
+.t-display em{font-style:italic;color:var(--jade)}
+.t-headline{font-family:var(--font-serif);font-weight:300;font-size:clamp(26px,3.8vw,48px);letter-spacing:-.03em}
+.t-headline em{font-style:italic}
+.t-sub{color:var(--haze);font-size:clamp(13px,.88vw,14.5px);line-height:1.78;max-width:560px}
+.t-micro{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--mist)}
+
+/* ─────────────────────────────────────────
+   LAYOUT HELPERS
+───────────────────────────────────────── */
+.wrap{max-width:var(--mw);margin:0 auto;padding:var(--py) var(--px)}
+.wrap-narrow{max-width:780px;margin:0 auto;padding:var(--py) var(--px)}
+section{position:relative;z-index:1}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--gap)}
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:var(--gap)}
+
+/* ─────────────────────────────────────────
+   GLASS SURFACES
+───────────────────────────────────────── */
+.glass{background:rgba(255,255,255,.028);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.065);border-radius:var(--r);transition:border-color .35s,box-shadow .35s,transform .35s var(--ease)}
+.glass:hover{border-color:rgba(0,200,150,.22);box-shadow:0 8px 36px rgba(0,200,150,.07);transform:translateY(-3px)}
+.glass-flat{background:rgba(255,255,255,.022);border:1px solid rgba(255,255,255,.055);border-radius:var(--r)}
+
+/* ─────────────────────────────────────────
+   BUTTONS
+───────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 28px;border-radius:50px;font-size:13px;font-weight:600;letter-spacing:.03em;transition:all .35s var(--ease);white-space:nowrap}
+.btn-jade{background:var(--jade);color:var(--ink)}
+.btn-jade:hover{background:var(--gold);box-shadow:0 0 28px var(--gold-glow)}
+.btn-ghost{border:1px solid rgba(255,255,255,.14);color:var(--paper)}
+.btn-ghost:hover{border-color:var(--jade);color:var(--jade)}
+.btn-arrow::after{content:'→';transition:transform .25s var(--ease)}
+.btn-arrow:hover::after{transform:translateX(4px)}
+
+/* ─────────────────────────────────────────
+   FORM ELEMENTS
+───────────────────────────────────────── */
+.field{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);border-radius:8px;padding:13px 16px;color:var(--snow);font-size:13.5px;width:100%;outline:none;transition:border-color .25s}
+.field::placeholder{color:var(--mist)}
+.field:focus{border-color:var(--jade);background:rgba(0,200,150,.04)}
+.field-label{display:block;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--mist);margin-bottom:7px}
+
+/* ─────────────────────────────────────────
+   DIVIDER
+───────────────────────────────────────── */
+.hr{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);margin:0}
+
+/* ─────────────────────────────────────────
+   SECTION HEADER
+───────────────────────────────────────── */
+.sec-hd{margin-bottom:clamp(36px,4vw,60px)}
+.sec-hd .t-eyebrow{margin-bottom:14px;display:block}
+.sec-hd .t-sub{margin-top:14px}
+.sec-hd-center{text-align:center}
+.sec-hd-center .t-sub{margin-left:auto;margin-right:auto}
+
+/* ─────────────────────────────────────────
+   ANIMATIONS
+───────────────────────────────────────── */
+@keyframes fade-up{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes fade-in{from{opacity:0}to{opacity:1}}
+@keyframes drift{0%,100%{transform:translateY(0) scale(1)}45%{transform:translateY(-12px) scale(1.01)}70%{transform:translateY(5px) scale(.99)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+@keyframes scan{from{transform:translateY(-100%)}to{transform:translateY(100%)}}
+@keyframes pulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.04)}}
+@keyframes glow-ring{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.7);opacity:0}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .75s var(--ease),transform .75s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+.reveal-l{opacity:0;transform:translateX(-20px);transition:opacity .75s var(--ease),transform .75s var(--ease)}
+.reveal-l.in{opacity:1;transform:none}
+.reveal-r{opacity:0;transform:translateX(20px);transition:opacity .75s var(--ease),transform .75s var(--ease)}
+.reveal-r.in{opacity:1;transform:none}
+.d1{transition-delay:.1s!important}
+.d2{transition-delay:.2s!important}
+.d3{transition-delay:.3s!important}
+.d4{transition-delay:.4s!important}
+.d5{transition-delay:.5s!important}
+
+/* ─────────────────────────────────────────
+   NAVBAR
+───────────────────────────────────────── */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:66px;display:flex;align-items:center;justify-content:space-between;padding:0 var(--px);transition:background .4s,border-color .4s}
+nav.stuck{background:rgba(8,12,20,.84);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.055)}
+.nav-logo{font-family:var(--font-serif);font-weight:400;font-size:17px;letter-spacing:.01em;color:var(--snow);display:flex;align-items:center;gap:8px}
+.nav-logo-mark{width:6px;height:6px;border-radius:50%;background:var(--jade);box-shadow:0 0 8px var(--jade),0 0 16px var(--jade-glow);animation:pulse 2.4s ease-in-out infinite}
+.nav-links{display:flex;align-items:center;gap:26px}
+.nav-links a{font-size:12.5px;font-weight:500;color:var(--haze);letter-spacing:.01em;transition:color .2s;padding-bottom:2px;border-bottom:1px solid transparent}
+.nav-links a:hover,.nav-links a.on{color:var(--jade);border-color:var(--jade)}
+.nav-cta{padding:8px 20px;border-radius:50px;border:1px solid var(--jade);color:var(--jade);font-size:12px;font-weight:600;letter-spacing:.03em;transition:all .3s}
+.nav-cta:hover{background:var(--jade);color:var(--ink)}
+.burger{display:none;flex-direction:column;gap:5px;padding:6px;color:var(--snow)}
+.burger span{width:22px;height:1.5px;background:currentColor;display:block;transition:all .3s;transform-origin:left}
+
+/* Mobile menu */
+.mob{position:fixed;inset:0;z-index:300;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:32px;opacity:0;pointer-events:none;transition:opacity .35s}
+.mob.open{opacity:1;pointer-events:auto}
+.mob a,.mob button{font-family:var(--font-serif);font-size:clamp(26px,7vw,38px);font-weight:300;color:var(--snow);letter-spacing:-.02em}
+.mob a:hover,.mob button:hover{color:var(--jade)}
+.mob-close{position:absolute;top:22px;right:var(--px);font-size:28px;color:var(--haze);cursor:pointer;background:none;border:none}
+
+/* ─────────────────────────────────────────
+   HERO
+───────────────────────────────────────── */
+#hero{height:100vh;min-height:600px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 var(--px);overflow:hidden}
+.hero-bg{position:absolute;inset:0;z-index:-2;overflow:hidden}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(90px)}
+.orb-a{width:clamp(280px,45vw,560px);height:clamp(280px,45vw,560px);background:radial-gradient(circle,rgba(0,200,150,.09),transparent 70%);top:-15%;right:-10%;animation:drift 10s ease-in-out infinite}
+.orb-b{width:clamp(200px,30vw,380px);height:clamp(200px,30vw,380px);background:radial-gradient(circle,rgba(232,160,32,.06),transparent 70%);bottom:5%;left:-8%;animation:drift 13s ease-in-out infinite reverse}
+.hero-grid-line{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:80px 80px;mask-image:radial-gradient(ellipse 70% 60% at 50% 50%,black 30%,transparent 100%)}
+.hero-noise{position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");opacity:.4}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:10px;padding:7px 16px;border-radius:50px;background:rgba(0,200,150,.1);border:1px solid rgba(0,200,150,.2);margin-bottom:28px;animation:fade-up .7s var(--ease) .2s both}
+.hero-eyebrow span{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--jade)}
+.hero-dot{width:5px;height:5px;border-radius:50%;background:var(--jade);animation:pulse 1.8s ease-in-out infinite}
+.hero-h1{animation:fade-up .8s var(--ease) .4s both;max-width:820px;margin-bottom:24px}
+.hero-h1 .line2{display:block;font-style:italic;color:var(--jade)}
+.hero-sub{color:var(--haze);max-width:520px;font-size:clamp(13.5px,.95vw,15.5px);line-height:1.8;animation:fade-up .7s var(--ease) .65s both;margin-bottom:40px}
+.hero-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;animation:fade-up .7s var(--ease) .85s both}
+.hero-scroll{position:absolute;bottom:32px;display:flex;flex-direction:column;align-items:center;gap:7px;color:var(--mist);font-size:10px;letter-spacing:.14em;text-transform:uppercase;animation:fade-in .6s var(--ease) 1.3s both}
+.hero-scroll-line{width:1px;height:36px;background:linear-gradient(to bottom,var(--jade),transparent);animation:bob 1.8s ease-in-out infinite}
+
+/* ─────────────────────────────────────────
+   SOCIAL PROOF BAR
+───────────────────────────────────────── */
+.proof-bar{border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.25);padding:clamp(16px,2vw,24px) var(--px)}
+.proof-inner{max-width:var(--mw);margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:clamp(24px,4vw,60px)}
+.proof-item{display:flex;align-items:center;gap:10px;opacity:.7}
+.proof-item:hover{opacity:1}
+.proof-num{font-family:var(--font-serif);font-weight:300;font-size:clamp(22px,2.5vw,30px);color:var(--jade)}
+.proof-lbl{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--haze);line-height:1.4}
+.proof-div{width:1px;height:32px;background:rgba(255,255,255,.08)}
+
+/* ─────────────────────────────────────────
+   PROBLEM
+───────────────────────────────────────── */
+.problem-card{padding:clamp(22px,2.5vw,36px);position:relative;overflow:hidden}
+.problem-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.02),transparent);pointer-events:none}
+.prob-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;flex-shrink:0}
+.prob-num{position:absolute;top:18px;right:20px;font-family:var(--font-serif);font-size:56px;font-weight:300;color:rgba(255,255,255,.04);line-height:1}
+
+/* ─────────────────────────────────────────
+   SERVICES
+───────────────────────────────────────── */
+.svc-stack{display:flex;flex-direction:column;gap:var(--gap)}
+.svc-card{padding:clamp(24px,3vw,40px);display:grid;grid-template-columns:1fr auto;gap:32px;align-items:start;transition:border-color .35s,box-shadow .35s}
+.svc-card.featured{border-color:rgba(232,160,32,.28);background:rgba(232,160,32,.03)}
+.svc-card.featured:hover{box-shadow:0 8px 40px rgba(232,160,32,.08)}
+.svc-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px}
+.svc-price{font-family:var(--font-serif);font-size:clamp(20px,2.2vw,28px);font-weight:300}
+.svc-features{display:flex;flex-direction:column;gap:9px;margin-top:18px}
+.svc-feat{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--haze)}
+.svc-feat-check{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(0,200,150,.12);color:var(--jade);font-size:10px}
+
+/* ─────────────────────────────────────────
+   METHODOLOGY (sticky horizontal)
+───────────────────────────────────────── */
+#metodologia{height:380vh}
+.meto-sticky{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;justify-content:center;overflow:hidden;background:linear-gradient(135deg,rgba(0,200,150,.03) 0%,transparent 60%),var(--ink)}
+.meto-hd{padding:0 var(--px) 0;margin-bottom:40px}
+.meto-track{display:flex;gap:clamp(16px,2.5vw,32px);padding:0 var(--px);will-change:transform;align-items:stretch}
+.meto-slide{flex-shrink:0;width:clamp(300px,55vw,580px);padding:clamp(28px,3.5vw,48px);position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-height:320px}
+.meto-n{position:absolute;bottom:0;right:20px;font-family:var(--font-serif);font-size:clamp(100px,16vw,180px);font-weight:300;color:rgba(0,200,150,.05);line-height:1;pointer-events:none;user-select:none}
+.meto-body{position:relative;z-index:1}
+.meto-week{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mist);margin-bottom:12px}
+.meto-title{font-family:var(--font-serif);font-weight:300;font-size:clamp(18px,2.2vw,26px);color:var(--snow);margin-bottom:12px}
+.meto-desc{color:var(--haze);font-size:13px;line-height:1.8}
+.meto-progress{position:absolute;bottom:28px;left:var(--px);right:var(--px);height:1px;background:rgba(255,255,255,.07)}
+.meto-bar{height:100%;background:linear-gradient(90deg,var(--jade),var(--gold));transform-origin:left;transform:scaleX(0);transition:none}
+
+/* ─────────────────────────────────────────
+   DOUBLE LENS
+───────────────────────────────────────── */
+.lens-card{overflow:hidden}
+.lens-inner{padding:clamp(26px,3vw,40px)}
+.lens-icon{width:52px;height:52px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:22px}
+
+/* ─────────────────────────────────────────
+   SECTORS
+───────────────────────────────────────── */
+.sector-card{padding:clamp(22px,2.5vw,34px)}
+.sector-icon{font-size:28px;margin-bottom:16px;line-height:1}
+
+/* ─────────────────────────────────────────
+   PROCESS TIMELINE
+───────────────────────────────────────── */
+.timeline{position:relative;max-width:660px;margin:0 auto;padding-left:52px}
+.timeline::before{content:'';position:absolute;left:18px;top:8px;bottom:8px;width:1px;background:linear-gradient(to bottom,var(--jade),rgba(0,200,150,.1))}
+.tl-item{position:relative;margin-bottom:40px}
+.tl-item:last-child{margin-bottom:0}
+.tl-dot{position:absolute;left:-40px;top:4px;width:14px;height:14px;border-radius:50%;border:2px solid var(--jade);background:var(--ink);z-index:1}
+.tl-dot::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:1px solid var(--jade);opacity:.3}
+.tl-dot.active::before{content:'';position:absolute;inset:0;border-radius:50%;background:var(--jade);animation:glow-ring 2s ease-out infinite}
+.tl-step{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--jade);margin-bottom:8px}
+.tl-title{font-family:var(--font-serif);font-weight:300;font-size:clamp(16px,1.9vw,22px);color:var(--snow);margin-bottom:8px}
+.tl-desc{color:var(--haze);font-size:13px;line-height:1.78}
+
+/* ─────────────────────────────────────────
+   ABOUT
+───────────────────────────────────────── */
+.about-row{display:flex;flex-wrap:wrap;gap:clamp(28px,5vw,72px);align-items:center}
+.about-text{flex:1 1 55%;min-width:280px}
+.about-img{flex:1 1 36%;min-width:250px}
+.about-stats{display:flex;gap:40px;flex-wrap:wrap;margin-top:36px;padding-top:28px;border-top:1px solid rgba(255,255,255,.07)}
+.stat-n{font-family:var(--font-serif);font-size:clamp(30px,3.5vw,44px);font-weight:300;color:var(--jade)}
+.stat-l{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mist);margin-top:2px}
+.img-frame{border-radius:12px;overflow:hidden;position:relative;background:linear-gradient(135deg,var(--ink-lift),rgba(0,200,150,.08));border:1px solid rgba(255,255,255,.07)}
+.img-frame::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom right,transparent 40%,rgba(0,200,150,.07));pointer-events:none}
+.img-frame img{width:100%;height:100%;object-fit:cover;display:block}
+.img-placeholder{height:360px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+
+/* ─────────────────────────────────────────
+   CASE STUDIES
+───────────────────────────────────────── */
+.case-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:var(--gap)}
+.case-card{overflow:hidden}
+.case-thumb{height:190px;position:relative;overflow:hidden;background:var(--ink-lift)}
+.case-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .6s var(--ease)}
+.case-card:hover .case-thumb img{transform:scale(1.04)}
+.case-thumb-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.case-body{padding:clamp(18px,2vw,28px)}
+.case-sector{display:inline-block;padding:3px 11px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.case-title{font-family:var(--font-serif);font-weight:300;font-size:clamp(15px,1.7vw,19px);color:var(--snow);margin-bottom:10px;line-height:1.3}
+.case-metric{font-family:var(--font-serif);font-size:clamp(26px,3vw,34px);font-weight:300;margin-top:14px;margin-bottom:14px}
+.case-link{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;color:var(--jade);transition:gap .2s}
+.case-link:hover{gap:10px}
+
+/* ─────────────────────────────────────────
+   RESOURCES
+───────────────────────────────────────── */
+.resources-row{display:flex;flex-wrap:wrap;gap:clamp(28px,5vw,64px)}
+.res-list{flex:1 1 50%;min-width:260px}
+.res-item{display:flex;align-items:center;gap:14px;padding:16px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13.5px;color:var(--snow);transition:color .2s}
+.res-item:hover{color:var(--jade)}
+.res-item:first-child{border-top:1px solid rgba(255,255,255,.06)}
+.res-ico{width:34px;height:34px;border-radius:8px;background:rgba(0,200,150,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px}
+.res-form{flex:1 1 38%;min-width:260px}
+.res-form-inner{padding:clamp(22px,2.5vw,36px)}
+
+/* ─────────────────────────────────────────
+   FAQ
+───────────────────────────────────────── */
+.faq-list{max-width:700px;margin:0 auto}
+.faq-item{margin-bottom:8px;overflow:hidden}
+.faq-q{width:100%;display:flex;justify-content:space-between;align-items:center;padding:20px 22px;background:none;border:none;color:var(--snow);font-size:clamp(13px,.95vw,15px);font-weight:500;text-align:left;cursor:pointer;gap:16px;transition:color .2s}
+.faq-q:hover{color:var(--jade)}
+.faq-chevron{flex-shrink:0;width:20px;height:20px;position:relative;color:var(--mist);transition:transform .3s var(--ease),color .2s}
+.faq-chevron::before,.faq-chevron::after{content:'';position:absolute;background:currentColor;border-radius:2px;transition:transform .3s var(--ease)}
+.faq-chevron::before{width:10px;height:1.5px;top:9px;left:2px;transform:rotate(40deg)}
+.faq-chevron::after{width:10px;height:1.5px;top:9px;right:2px;transform:rotate(-40deg)}
+.faq-item.open .faq-chevron{color:var(--jade)}
+.faq-item.open .faq-chevron::before{transform:rotate(-40deg)}
+.faq-item.open .faq-chevron::after{transform:rotate(40deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .38s var(--ease)}
+.faq-a p{padding:0 22px 20px;color:var(--haze);font-size:13.5px;line-height:1.78}
+.faq-item.open .faq-a{max-height:220px}
+
+/* ─────────────────────────────────────────
+   CONTACT
+───────────────────────────────────────── */
+.contact-row{display:flex;flex-wrap:wrap;gap:clamp(28px,5vw,64px)}
+.contact-form-col{flex:1 1 55%;min-width:280px}
+.contact-info-col{flex:1 1 35%;min-width:240px;display:flex;flex-direction:column;gap:0}
+.contact-form-inner{padding:clamp(22px,2.5vw,36px);display:flex;flex-direction:column;gap:14px}
+.contact-info-item{display:flex;align-items:flex-start;gap:14px;padding:20px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.contact-info-item:first-child{border-top:1px solid rgba(255,255,255,.06)}
+.ci-icon{width:38px;height:38px;border-radius:9px;background:rgba(0,200,150,.08);border:1px solid rgba(0,200,150,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.ci-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mist);margin-bottom:4px}
+.ci-value{font-size:14px;color:var(--snow);font-weight:500}
+.ci-link{font-size:13.5px;color:var(--jade);display:inline-flex;align-items:center;gap:5px;transition:gap .2s}
+.ci-link:hover{gap:8px}
+.social-row{display:flex;gap:8px;margin-top:24px}
+.social-btn{width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;color:var(--haze);transition:all .25s}
+.social-btn:hover{border-color:var(--jade);color:var(--jade);background:rgba(0,200,150,.06)}
+.form-note{font-size:11px;color:var(--mist);text-align:center;margin-top:4px}
+.form-success{display:none;padding:16px;background:rgba(0,200,150,.08);border:1px solid rgba(0,200,150,.2);border-radius:8px;color:var(--jade);font-size:13px;text-align:center;gap:8px;align-items:center;justify-content:center}
+
+/* ─────────────────────────────────────────
+   CTA BAND
+───────────────────────────────────────── */
+.cta-band{background:linear-gradient(135deg,rgba(0,200,150,.07),rgba(232,160,32,.05));border-top:1px solid rgba(0,200,150,.12);border-bottom:1px solid rgba(0,200,150,.12);padding:clamp(52px,7vw,96px) var(--px);text-align:center;position:relative;overflow:hidden}
+.cta-band::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 50% 50%,rgba(0,200,150,.05),transparent)}
+
+/* ─────────────────────────────────────────
+   FOOTER
+───────────────────────────────────────── */
+footer{background:#03060E;padding:clamp(40px,6vw,72px) var(--px) clamp(20px,3vw,32px);position:relative;z-index:1}
+.footer-inner{max-width:var(--mw);margin:0 auto}
+.footer-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:32px;margin-bottom:40px;padding-bottom:40px;border-bottom:1px solid rgba(255,255,255,.05)}
+.footer-brand p{font-size:12.5px;color:var(--mist);max-width:220px;margin-top:10px;line-height:1.7}
+.footer-nav{display:flex;gap:clamp(16px,3vw,40px);flex-wrap:wrap;align-items:flex-start}
+.footer-nav a{font-size:12.5px;color:var(--mist);transition:color .2s}
+.footer-nav a:hover{color:var(--jade)}
+.footer-bottom{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px}
+.footer-legal{display:flex;gap:18px}
+.footer-legal a{font-size:11px;color:var(--mist);transition:color .2s}
+.footer-legal a:hover{color:var(--snow)}
+.footer-copy{font-size:11px;color:var(--mist)}
+
+/* ─────────────────────────────────────────
+   RESPONSIVE
+───────────────────────────────────────── */
+@media(max-width:800px){
+  .nav-links,.nav-cta{display:none}
+  .burger{display:flex}
+  .svc-card{grid-template-columns:1fr}
+  #metodologia{height:300vh}
+  .meto-slide{width:clamp(280px,82vw,400px)}
+  .about-img{display:none}
+  .contact-row{flex-direction:column}
+  .resources-row{flex-direction:column}
+  .proof-div{display:none}
+}
+@media(max-width:520px){
+  .hero-actions{flex-direction:column;width:100%}
+  .hero-actions .btn{width:100%;justify-content:center}
+  .about-stats{gap:24px}
+  .footer-top{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<canvas id="cv" aria-hidden="true"></canvas>
+
+<!-- ═══════════════════ NAVBAR ═══════════════════ -->
+<nav id="nav" role="navigation" aria-label="Navegación principal">
+  <a href="#hero" class="nav-logo" aria-label="Holobionte IA — Inicio">
+    Holobionte <span class="nav-logo-mark" aria-hidden="true"></span>
+  </a>
+  <div class="nav-links" role="menubar">
+    <a href="#servicios">Servicios</a>
+    <a href="#metodologia">Metodología</a>
+    <a href="#casos">Casos</a>
+    <a href="#sobre">Sobre</a>
+    <a href="#contacto">Contacto</a>
+  </div>
+  <a href="#contacto" class="nav-cta">Diagnóstico Express</a>
+  <button class="burger" id="burger" aria-label="Abrir menú" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- Mobile menu -->
+<div class="mob" id="mob" role="dialog" aria-label="Menú de navegación">
+  <button class="mob-close" id="mob-close" aria-label="Cerrar menú">✕</button>
+  <a href="#servicios" onclick="closeMob()">Servicios</a>
+  <a href="#metodologia" onclick="closeMob()">Metodología</a>
+  <a href="#casos" onclick="closeMob()">Casos</a>
+  <a href="#sobre" onclick="closeMob()">Sobre</a>
+  <a href="#contacto" onclick="closeMob()">Contacto</a>
+</div>
+
+<main>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<header id="hero" style="position:relative;z-index:1">
+  <div class="hero-bg">
+    <div class="hero-orb orb-a"></div>
+    <div class="hero-orb orb-b"></div>
+    <div class="hero-grid-line"></div>
+    <div class="hero-noise"></div>
+  </div>
+
+  <div class="hero-eyebrow">
+    <span class="hero-dot" aria-hidden="true"></span>
+    <span>Consultoría IA remota · Lima, Perú</span>
+  </div>
+
+  <h1 class="t-display hero-h1">
+    Tu empresa es un organismo.
+    <span class="line2">La IA es su tejido vivo.</span>
+  </h1>
+
+  <p class="hero-sub">
+    Consultoría remota que integra inteligencia artificial como extensión natural de tu equipo — no como parche tecnológico.
+  </p>
+
+  <div class="hero-actions">
+    <a href="#contacto" class="btn btn-jade btn-arrow">Diagnóstico Express Gratis</a>
+    <a href="#casos" class="btn btn-ghost">Ver resultados reales</a>
+  </div>
+
+  <div class="hero-scroll" aria-hidden="true">
+    <div class="hero-scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</header>
+
+<!-- ═══════════════════ PROOF BAR ═══════════════════ -->
+<div class="proof-bar">
+  <div class="proof-inner">
+    <div class="proof-item reveal">
+      <span class="proof-num">15+</span>
+      <span class="proof-lbl">Proyectos<br>entregados</span>
+    </div>
+    <div class="proof-div"></div>
+    <div class="proof-item reveal d1">
+      <span class="proof-num">98%</span>
+      <span class="proof-lbl">Clientes<br>satisfechos</span>
+    </div>
+    <div class="proof-div"></div>
+    <div class="proof-item reveal d2">
+      <span class="proof-num">3</span>
+      <span class="proof-lbl">Países con<br>presencia</span>
+    </div>
+    <div class="proof-div"></div>
+    <div class="proof-item reveal d3">
+      <span class="proof-num">&lt;24h</span>
+      <span class="proof-lbl">Tiempo de<br>respuesta</span>
+    </div>
+  </div>
+</div>
+
+<div class="hr"></div>
+
+<!-- ═══════════════════ PROBLEM ═══════════════════ -->
+<section id="problema">
+  <div class="wrap">
+    <div class="sec-hd reveal">
+      <span class="t-eyebrow">El problema</span>
+      <h2 class="t-headline">¿Por qué la mayoría de las<br>consultorías IA <em>fracasan</em>?</h2>
+    </div>
+    <div class="grid-3">
+      <div class="glass problem-card reveal d1">
+        <span class="prob-num">01</span>
+        <div class="prob-icon" style="background:rgba(232,80,80,.1)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E85050" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+        </div>
+        <h3 style="font-family:var(--font-serif);font-weight:300;font-size:clamp(16px,1.8vw,20px);color:var(--snow);margin-bottom:10px">Suplantan en lugar de potenciar</h3>
+        <p style="color:var(--haze);font-size:13px;line-height:1.78">Llegan, reemplazan al equipo, y se van. Dejan un vacío, no valor. La organización queda más frágil que antes.</p>
+      </div>
+      <div class="glass problem-card reveal d2">
+        <span class="prob-num">02</span>
+        <div class="prob-icon" style="background:rgba(232,80,80,.1)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E85050" stroke-width="2"><path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/><path d="M14 14h7v7h-7z"/><path d="M3 14h7v7H3z"/></svg>
+        </div>
+        <h3 style="font-family:var(--font-serif);font-weight:300;font-size:clamp(16px,1.8vw,20px);color:var(--snow);margin-bottom:10px">Trabajan en silos aislados</h3>
+        <p style="color:var(--haze);font-size:13px;line-height:1.78">Sin integración real con procesos, cultura ni KPIs existentes. La tecnología nunca se convierte en hábito operativo.</p>
+      </div>
+      <div class="glass problem-card reveal d3">
+        <span class="prob-num">03</span>
+        <div class="prob-icon" style="background:rgba(232,80,80,.1)">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E85050" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        </div>
+        <h3 style="font-family:var(--font-serif);font-weight:300;font-size:clamp(16px,1.8vw,20px);color:var(--snow);margin-bottom:10px">Crean dependencia tóxica</h3>
+        <p style="color:var(--haze);font-size:13px;line-height:1.78">Nadie sabe cómo funciona lo que implementaron. La empresa queda atada al proveedor indefinidamente.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="hr"></div>
+
+<!-- ═══════════════════ SERVICES ═══════════════════ -->
+<section id="servicios">
+  <div class="wrap">
+    <div class="sec-hd reveal">
+      <span class="t-eyebrow">Servicios</span>
+      <h2 class="t-headline">Tres niveles de <em>integración</em>,<br>no de imposición</h2>
+      <p class="t-sub">Cada nivel está diseñado para una etapa distinta de madurez organizacional. Empiezas donde estás, no donde deberías estar.</p>
+    </div>
+    <div class="svc-stack">
+
+      <div class="glass svc-card reveal d1">
+        <div>
+          <div class="svc-badge" style="background:rgba(0,200,150,.1);color:var(--jade)">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="var(--jade)"><circle cx="12" cy="12" r="10"/></svg>
+            Nivel 1 · Implementación
+          </div>
+          <h3 style="font-family:var(--font-serif);font-weight:300;font-size:clamp(17px,2vw,23px);color:var(--snow);margin-bottom:10px">Implementación Táctica</h3>
+          <p style="color:var(--haze);font-size:13px;line-height:1.78;max-width:520px">Identificación y automatización de procesos repetitivos usando herramientas IA existentes. Integración con flujos de trabajo actuales sin disrumpir operaciones.</p>
+          <div class="svc-features">
+            <div class="svc-feat"><span class="svc-feat-check">✓</span>Diagnóstico de procesos automatizables</div>
+            <div class="svc-feat"><span class="svc-feat-check">✓</span>Implementación de herramientas IA</div>
+            <div class="svc-feat"><span class="svc-feat-check">✓</span>Capacitación del equipo</div>
+            <div class="svc-feat"><span class="svc-feat-check">✓</span>Métricas de ROI</div>
+          </div>
+        </div>
+        <div style="text-align:right;min-width:130px">
+          <div class="svc-price" style="color:var(--jade)">Desde<br>$1,500<span style="font-size:.6em">/mes</span></div>
+        </div>
+      </div>
+
+      <div class="glass svc-card featured reveal d2">
+        <div>
+          <div class="svc-badge" style="background:rgba(232,160,32,.1);color:var(--gold)">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="var(--gold)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            Nivel 2 · Estrategia · Más popular
+          </div>
+          <h3 style="font-family:var(--font-serif);font-weight:300;font-size:clamp(17px,2vw,23px);color:var(--snow);margin-bottom:10px">Estrategia Operativa</h3>
+          <p style="color:var(--haze);font-size:13px;line-height:1.78;max-width:520px">Reconfiguración de procesos clave con IA integrada. Acompañamiento estratégico continuo con métricas de adopción y KPIs organizacionales.</p>
+          <div class="svc-features">
+            <div class="svc-feat"><span class="svc-feat-check" style="background:rgba(232,160,32,.15);color:var(--gold)">✓</span>Todo el Nivel 1</div>
+            <div class="svc-feat"><span class="svc-feat-check" style="background:rgba(232,160,32,.15);color:var(--gold)">✓</span>Rediseño de 3–5 procesos core</div>
+            <div class="svc-feat"><span class="svc-feat-check" style="background:rgba(232,160,32,.15);color:var(--gold)">✓</span>KPIs de adopción cultural</div>
+            <div class="svc-feat"><span class="svc-feat-check" style="background:rgba(232,160,32,.15);color:var(--gold)">✓</span>Soporte prioritario</div>
+          </div>
+        </div>
+        <div style="text-align:right;min-width:130px">
+          <div class="svc-price" style="color:var(--gold)">Desde<br>$3,500<span style="font-size:.6em">/mes</span></div>
+        </div>
+      </div>
+
+      <div class="glass svc-card reveal d3">
+        <div>
+          <div class="svc-badge" style="background:rgba(0,200,150,.1);color:var(--jade)">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--jade)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Nivel 3 · Transformación
+          </div>
+          <h3 style="font-family:var(--font-serif);font-weight:300;font-size:clamp(17px,2vw,23px);color:var(--snow);margin-bottom:10px">Transformación Cultural</h3>
+          <p style="color:var(--haze);font-size:13px;line-height:1.78;max-width:520px">Transformación organizacional completa. La IA como extensión del equipo humano, integrada en el ADN de la empresa.</p>
+          <div class="svc-features">
+            <div class="svc-feat"><span class="svc-feat-check">✓</span>Todo el Nivel 2</div>
+            <div class="svc-feat"><span class="svc-feat-check">✓</span>Programa de alfabetización IA</div>
+            <div class="svc-feat"><span class="svc-feat-check">✓</span>Mentoría C-suite</div>
+            <div class="svc-feat"><span class="svc-feat-check">✓</span>Comité de innovación IA</div>
+          </div>
+        </div>
+        <div style="text-align:right;min-width:130px">
+          <div class="svc-price" style="color:var(--jade)">Desde<br>$6,500<span style="font-size:.6em">/mes</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ METHODOLOGY ═══════════════════ -->
+<section id="metodologia">
+  <div class="meto-sticky" id="meto-sticky">
+    <div class="meto-hd reveal">
+      <span class="t-eyebrow">Metodología</span>
+      <h2 class="t-headline" style="margin-bottom:0">Un proceso de <em>integración</em>, no imposición</h2>
+    </div>
+    <div class="meto-track" id="meto-track">
+      <div class="glass meto-slide">
+        <span class="meto-n" aria-hidden="true">01</span>
+        <div class="meto-body">
+          <div class="meto-week">Semana 1–2</div>
+          <h3 class="meto-title">Diagnóstico del ecosistema</h3>
+          <p class="meto-desc">Mapeamos tu operación: procesos, equipos, cultura, tech stack. Identificamos puntos de fricción donde la IA puede crear valor medible y sostenible.</p>
+        </div>
+      </div>
+      <div class="glass meto-slide">
+        <span class="meto-n" aria-hidden="true">02</span>
+        <div class="meto-body">
+          <div class="meto-week">Semana 3–4</div>
+          <h3 class="meto-title">Diseño de soluciones híbridas</h3>
+          <p class="meto-desc">Prototipamos flujos de trabajo humano-IA. Cada solución se adapta a tu contexto: equipo, presupuesto, objetivos. Sin plantillas genéricas.</p>
+        </div>
+      </div>
+      <div class="glass meto-slide">
+        <span class="meto-n" aria-hidden="true">03</span>
+        <div class="meto-body">
+          <div class="meto-week">Semana 5–8</div>
+          <h3 class="meto-title">Implementación gradual</h3>
+          <p class="meto-desc">Pilotos controlados, retroalimentación continua. El equipo aprende mientras la IA se integra, sin interrumpir operaciones críticas.</p>
+        </div>
+      </div>
+      <div class="glass meto-slide">
+        <span class="meto-n" aria-hidden="true">04</span>
+        <div class="meto-body">
+          <div class="meto-week">Mes 3 en adelante</div>
+          <h3 class="meto-title">Evolución continua</h3>
+          <p class="meto-desc">Métricas de adopción, ajustes iterativos. La IA se convierte en hábito operativo — parte natural del organismo empresa. No te abandonamos al entregar.</p>
+        </div>
+      </div>
+    </div>
+    <div class="meto-progress"><div class="meto-bar" id="meto-bar"></div></div>
+  </div>
+</section>
+
+<div class="hr"></div>
+
+<!-- ═══════════════════ DOUBLE LENS ═══════════════════ -->
+<section id="diferencial">
+  <div class="wrap">
+    <div class="sec-hd reveal">
+      <span class="t-eyebrow">Diferencial</span>
+      <h2 class="t-headline">Doble lente: IA + <em>industria</em></h2>
+      <p class="t-sub">Cada proyecto cuenta con dos profesionales: un especialista en modelos de IA y uno con experiencia real en tu sector.</p>
+    </div>
+    <div class="grid-2">
+      <div class="glass lens-card reveal-l">
+        <div class="lens-inner">
+          <div class="lens-icon" style="background:rgba(0,200,150,.1)">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--jade)" stroke-width="1.7"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6M8 11h6"/></svg>
+          </div>
+          <h3 style="font-family:var(--font-serif);font-weight:300;font-size:clamp(17px,2vw,22px);color:var(--snow);margin-bottom:12px">Especialista en IA</h3>
+          <p style="color:var(--haze);font-size:13px;line-height:1.78">Conocimiento profundo de modelos, herramientas, APIs y arquitecturas. Sabe qué es posible, qué no, y cómo implementarlo con eficiencia real en producción.</p>
+        </div>
+      </div>
+      <div class="glass lens-card reveal-r">
+        <div class="lens-inner">
+          <div class="lens-icon" style="background:rgba(232,160,32,.1)">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.7"><path d="M2 20h.01M7 20v-4"/><path d="M12 20V10"/><path d="M17 20V4"/><path d="M22 20h.01"/></svg>
+          </div>
+          <h3 style="font-family:var(--font-serif);font-weight:300;font-size:clamp(17px,2vw,22px);color:var(--snow);margin-bottom:12px">Especialista en tu industria</h3>
+          <p style="color:var(--haze);font-size:13px;line-height:1.78">Ha trabajado en tu sector. Conoce los retos regulatorios, los KPIs que importan, y cómo se toman decisiones en organizaciones reales como la tuya.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ SECTORS ═══════════════════ -->
+<section id="sectores" style="background:rgba(0,0,0,.18)">
+  <div class="wrap">
+    <div class="sec-hd reveal">
+      <span class="t-eyebrow">Sectores</span>
+      <h2 class="t-headline">Donde la IA genera <em>impacto real</em></h2>
+    </div>
+    <div class="grid-3" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))">
+      <div class="glass sector-card reveal d1">
+        <div class="sector-icon">🏥</div>
+        <h3 style="font-family:var(--font-serif);font-weight:300;font-size:clamp(15px,1.7vw,19px);color:var(--snow);margin-bottom:8px">Salud</h3>
+        <p style="color:var(--haze);font-size:12.5px;line-height:1.78">Documentación clínica, análisis de imágenes, triaje inteligente, optimización de agendas.</p>
+      </div>
+      <div class="glass sector-card reveal d2">
+        <div class="sector-icon">🏦</div>
+        <h3 style="font-family:var(--font-serif);font-weight:300;font-size:clamp(15px,1.7vw,19px);color:var(--snow);margin-bottom:8px">Finanzas & Fintech</h3>
+        <p style="color:var(--haze);font-size:12.5px;line-height:1.78">Riesgo crediticio, detección de fraude, reportes regulatorios, atención automatizada.</p>
+      </div>
+      <div class="glass sector-card reveal d3">
+        <div class="sector-icon">🛍</div>
+        <h3 style="font-family:var(--font-serif);font-weight:300;font-size:clamp(15px,1.7vw,19px);color:var(--snow);margin-bottom:8px">Retail & E-commerce</h3>
+        <p style="color:var(--haze);font-size:12.5px;line-height:1.78">Personalización, forecasting de demanda, atención 24/7, inventario predictivo.</p>
+      </div>
+      <div class="glass sector-card reveal d4">
+        <div class="sector-icon">⚖️</div>
+        <h3 style="font-family:var(--font-serif);font-weight:300;font-size:clamp(15px,1.7vw,19px);color:var(--snow);margin-bottom:8px">Legal & Compliance</h3>
+        <p style="color:var(--haze);font-size:12.5px;line-height:1.78">Revisión de contratos, jurisprudencia, due diligence, cumplimiento normativo.</p>
+      </div>
+      <div class="glass sector-card reveal d5">
+        <div class="sector-icon">🏗️</div>
+        <h3 style="font-family:var(--font-serif);font-weight:300;font-size:clamp(15px,1.7vw,19px);color:var(--snow);margin-bottom:8px">Manufactura & Logística</h3>
+        <p style="color:var(--haze);font-size:12.5px;line-height:1.78">Mantenimiento predictivo, optimización de rutas, control de calidad visual, supply chain.</p>
+      </div>
+      <div class="glass sector-card reveal d1">
+        <div class="sector-icon">🎓</div>
+        <h3 style="font-family:var(--font-serif);font-weight:300;font-size:clamp(15px,1.7vw,19px);color:var(--snow);margin-bottom:8px">Educación & HR</h3>
+        <p style="color:var(--haze);font-size:12.5px;line-height:1.78">Aprendizaje adaptativo, selección de talento, onboarding inteligente, evaluación continua.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="hr"></div>
+
+<!-- ═══════════════════ PROCESS ═══════════════════ -->
+<section id="proceso">
+  <div class="wrap">
+    <div class="sec-hd sec-hd-center reveal" style="text-align:center">
+      <span class="t-eyebrow">Proceso</span>
+      <h2 class="t-headline">De diagnóstico a transformación<br>en <em>4 pasos claros</em></h2>
+    </div>
+    <div class="timeline">
+      <div class="tl-item reveal d1">
+        <div class="tl-dot active"></div>
+        <div class="tl-step">Paso 01</div>
+        <h3 class="tl-title">Evaluación gratuita</h3>
+        <p class="tl-desc">30 minutos para entender tu situación. Sin compromiso. Te decimos honestamente si podemos ayudarte y cómo.</p>
+      </div>
+      <div class="tl-item reveal d2">
+        <div class="tl-dot" style="border-color:var(--gold)"></div>
+        <div class="tl-step" style="color:var(--gold)">Paso 02</div>
+        <h3 class="tl-title">Propuesta personalizada</h3>
+        <p class="tl-desc">Diseñamos un plan a tu medida: alcance, timeline e inversión. Nada genérico, todo calibrado a tu realidad.</p>
+      </div>
+      <div class="tl-item reveal d3">
+        <div class="tl-dot"></div>
+        <div class="tl-step">Paso 03</div>
+        <h3 class="tl-title">Implementación con acompañamiento</h3>
+        <p class="tl-desc">Tu equipo nunca está solo. Capacitación continua, soporte prioritario y ajustes en tiempo real.</p>
+      </div>
+      <div class="tl-item reveal d4">
+        <div class="tl-dot" style="border-color:var(--gold)"></div>
+        <div class="tl-step" style="color:var(--gold)">Paso 04</div>
+        <h3 class="tl-title">Medición y evolución</h3>
+        <p class="tl-desc">KPIs claros, ajustes iterativos, relación de largo plazo. Crecemos contigo, no te abandonamos al entregar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ ABOUT ═══════════════════ -->
+<section id="sobre" style="background:rgba(0,0,0,.15)">
+  <div class="wrap">
+    <div class="about-row">
+      <div class="about-text reveal-l">
+        <span class="t-eyebrow" style="display:block;margin-bottom:14px">Sobre nosotros</span>
+        <h2 class="t-headline">Somos un organismo,<br>no una <em>máquina</em></h2>
+        <p style="color:var(--haze);margin-top:18px;margin-bottom:16px;font-size:13.5px;line-height:1.82">Holobionte nace de la convicción de que la IA no reemplaza a las personas: las potencia. Somos un equipo distribuido entre Perú y el mundo, con experiencia en consultoría estratégica, ingeniería de IA, y operaciones reales en industrias reguladas.</p>
+        <p style="color:var(--haze);font-size:13.5px;line-height:1.82">Nuestro modelo de consultoría remota permite acceso a talento global sin costos de oficina. Cada proyecto es un ecosistema vivo: crecemos contigo.</p>
+        <div class="about-stats">
+          <div>
+            <div class="stat-n">15+</div>
+            <div class="stat-l">Proyectos</div>
+          </div>
+          <div>
+            <div class="stat-n">98%</div>
+            <div class="stat-l">Satisfacción</div>
+          </div>
+          <div>
+            <div class="stat-n">3</div>
+            <div class="stat-l">Países</div>
+          </div>
+        </div>
+      </div>
+      <div class="about-img reveal-r">
+        <div class="img-frame img-placeholder">
+          <!-- Neural SVG illustration -->
+          <svg width="240" height="200" viewBox="0 0 240 200" fill="none" aria-label="Red neuronal abstracta" role="img">
+            <defs>
+              <radialGradient id="rg1" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="rgba(0,200,150,.25)"/>
+                <stop offset="100%" stop-color="transparent"/>
+              </radialGradient>
+            </defs>
+            <circle cx="120" cy="100" r="80" fill="url(#rg1)"/>
+            <!-- nodes -->
+            <circle cx="40" cy="100" r="7" stroke="var(--jade)" stroke-width="1.5" fill="var(--ink-mid)"/>
+            <circle cx="90" cy="50" r="7" stroke="var(--jade)" stroke-width="1.5" fill="var(--ink-mid)"/>
+            <circle cx="90" cy="150" r="7" stroke="var(--jade)" stroke-width="1.5" fill="var(--ink-mid)"/>
+            <circle cx="150" cy="50" r="7" stroke="var(--jade)" stroke-width="1.5" fill="var(--ink-mid)"/>
+            <circle cx="150" cy="150" r="7" stroke="var(--jade)" stroke-width="1.5" fill="var(--ink-mid)"/>
+            <circle cx="200" cy="100" r="7" stroke="var(--jade)" stroke-width="1.5" fill="var(--ink-mid)"/>
+            <!-- center -->
+            <circle cx="120" cy="100" r="9" fill="var(--jade)" fill-opacity=".8"/>
+            <circle cx="120" cy="100" r="16" stroke="var(--jade)" stroke-width="1" fill="none" stroke-opacity=".3"/>
+            <!-- connections -->
+            <line x1="40" y1="100" x2="90" y2="50" stroke="rgba(0,200,150,.25)" stroke-width="1"/>
+            <line x1="40" y1="100" x2="90" y2="150" stroke="rgba(0,200,150,.2)" stroke-width="1"/>
+            <line x1="90" y1="50" x2="120" y2="100" stroke="rgba(0,200,150,.35)" stroke-width="1"/>
+            <line x1="90" y1="150" x2="120" y2="100" stroke="rgba(0,200,150,.3)" stroke-width="1"/>
+            <line x1="150" y1="50" x2="120" y2="100" stroke="rgba(0,200,150,.35)" stroke-width="1"/>
+            <line x1="150" y1="150" x2="120" y2="100" stroke="rgba(0,200,150,.3)" stroke-width="1"/>
+            <line x1="200" y1="100" x2="150" y2="50" stroke="rgba(0,200,150,.25)" stroke-width="1"/>
+            <line x1="200" y1="100" x2="150" y2="150" stroke="rgba(0,200,150,.2)" stroke-width="1"/>
+            <line x1="90" y1="50" x2="150" y2="50" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+            <line x1="90" y1="150" x2="150" y2="150" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+          </svg>
+          <span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mist)">Holobionte IA · Lima, Perú</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="hr"></div>
+
+<!-- ═══════════════════ CASES ═══════════════════ -->
+<section id="casos">
+  <div class="wrap">
+    <div class="sec-hd reveal">
+      <span class="t-eyebrow">Casos de éxito</span>
+      <h2 class="t-headline">Resultados que <em>hablan</em></h2>
+      <p class="t-sub">Impacto medible en industrias reguladas y de alta complejidad operativa.</p>
+    </div>
+    <div class="case-grid">
+
+      <div class="glass case-card reveal d1">
+        <div class="case-thumb">
+          <div class="case-thumb-fallback" style="background:linear-gradient(135deg,rgba(0,200,150,.08),rgba(0,200,150,.03))">
+            <svg width="90" height="70" viewBox="0 0 90 70" fill="none" aria-hidden="true">
+              <rect x="8" y="35" width="10" height="22" fill="rgba(0,200,150,.3)" rx="2"/>
+              <rect x="21" y="22" width="10" height="35" fill="rgba(0,200,150,.5)" rx="2"/>
+              <rect x="34" y="10" width="10" height="47" fill="rgba(0,200,150,.7)" rx="2"/>
+              <rect x="47" y="28" width="10" height="29" fill="rgba(0,200,150,.4)" rx="2"/>
+              <rect x="60" y="18" width="10" height="39" fill="rgba(0,200,150,.55)" rx="2"/>
+              <polyline points="13,40 26,26 39,14 52,32 65,22" stroke="var(--jade)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+              <circle cx="65" cy="22" r="3" fill="var(--jade)"/>
+            </svg>
+          </div>
+        </div>
+        <div class="case-body">
+          <span class="case-sector" style="background:rgba(0,200,150,.1);color:var(--jade)">Salud</span>
+          <h3 class="case-title">Reducción del 60% en tiempo de documentación clínica</h3>
+          <p style="color:var(--haze);font-size:12.5px;line-height:1.78">Transcripción y estructuración IA para historias clínicas. El médico gana 2 horas por día para dedicarlas al paciente.</p>
+          <div class="case-metric" style="color:var(--jade)">60%</div>
+          <a href="#contacto" class="case-link">Ver caso completo <span>→</span></a>
+        </div>
+      </div>
+
+      <div class="glass case-card reveal d2">
+        <div class="case-thumb">
+          <div class="case-thumb-fallback" style="background:linear-gradient(135deg,rgba(232,160,32,.06),rgba(232,160,32,.02))">
+            <svg width="90" height="70" viewBox="0 0 90 70" fill="none" aria-hidden="true">
+              <circle cx="45" cy="35" r="26" stroke="rgba(232,160,32,.2)" stroke-width="1.5"/>
+              <circle cx="45" cy="35" r="18" stroke="rgba(232,160,32,.35)" stroke-width="1.5"/>
+              <path d="M45 9 A26 26 0 0 1 71 35" stroke="var(--gold)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <text x="36" y="40" fill="rgba(232,160,32,.8)" font-size="13" font-family="Georgia,serif" font-weight="300">78%</text>
+            </svg>
+          </div>
+        </div>
+        <div class="case-body">
+          <span class="case-sector" style="background:rgba(232,160,32,.1);color:var(--gold)">Finanzas</span>
+          <h3 class="case-title">Atención al cliente 24/7 sin aumentar personal</h3>
+          <p style="color:var(--haze);font-size:12.5px;line-height:1.78">Chatbot inteligente + triaje automático. Resuelve el 78% de consultas sin intervención humana, con CSAT superior al baseline.</p>
+          <div class="case-metric" style="color:var(--gold)">78%</div>
+          <a href="#contacto" class="case-link">Ver caso completo <span>→</span></a>
+        </div>
+      </div>
+
+      <div class="glass case-card reveal d3">
+        <div class="case-thumb">
+          <div class="case-thumb-fallback" style="background:linear-gradient(135deg,rgba(0,200,150,.05),rgba(0,200,150,.02))">
+            <svg width="110" height="70" viewBox="0 0 110 70" fill="none" aria-hidden="true">
+              <polyline points="5,58 20,42 35,50 50,24 65,32 80,12 95,18 105,14" stroke="var(--jade)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline points="5,58 20,42 35,50 50,24 65,32 80,12 95,18 105,14 105,62 5,62" fill="rgba(0,200,150,.06)"/>
+              <circle cx="80" cy="12" r="3.5" fill="var(--jade)"/>
+            </svg>
+          </div>
+        </div>
+        <div class="case-body">
+          <span class="case-sector" style="background:rgba(0,200,150,.1);color:var(--jade)">Retail</span>
+          <h3 class="case-title">Forecasting de demanda con 94% de precisión</h3>
+          <p style="color:var(--haze);font-size:12.5px;line-height:1.78">Modelo predictivo de demanda semanal. Reducción del 35% en merma de inventario y mejora en disponibilidad de producto.</p>
+          <div class="case-metric" style="color:var(--jade)">94%</div>
+          <a href="#contacto" class="case-link">Ver caso completo <span>→</span></a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ RESOURCES ═══════════════════ -->
+<section id="recursos" style="background:rgba(0,0,0,.12)">
+  <div class="wrap">
+    <div class="sec-hd reveal">
+      <span class="t-eyebrow">Recursos gratuitos</span>
+      <h2 class="t-headline">Tu kit de inicio en <em>IA</em></h2>
+    </div>
+    <div class="resources-row">
+      <div class="res-list reveal-l">
+        <div class="res-item">
+          <div class="res-ico">📋</div>
+          Guía: '10 preguntas antes de contratar IA'
+        </div>
+        <div class="res-item">
+          <div class="res-ico">📊</div>
+          Template: Calculadora de ROI para proyectos IA
+        </div>
+        <div class="res-item">
+          <div class="res-ico">🎬</div>
+          Video: '¿Está tu empresa lista para IA?'
+        </div>
+        <div class="res-item">
+          <div class="res-ico">✅</div>
+          Checklist: Preparación de datos para IA
+        </div>
+      </div>
+      <div class="res-form reveal-r">
+        <div class="glass res-form-inner" style="text-align:center">
+          <h3 style="font-family:var(--font-serif);font-weight:300;font-size:clamp(17px,2vw,22px);color:var(--snow);margin-bottom:8px">Recibe los recursos en tu email</h3>
+          <p style="color:var(--haze);font-size:12.5px;margin-bottom:22px">Sin spam. Darte de baja en un clic.</p>
+          <input type="email" placeholder="tu@empresa.com" class="field" style="margin-bottom:12px" aria-label="Email para recursos"/>
+          <button class="btn btn-jade" style="width:100%;justify-content:center" onclick="resBtn(this)">Enviar recursos</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="hr"></div>
+
+<!-- ═══════════════════ FAQ ═══════════════════ -->
+<section id="faq">
+  <div class="wrap-narrow">
+    <div class="sec-hd sec-hd-center reveal" style="text-align:center">
+      <span class="t-eyebrow">Preguntas frecuentes</span>
+      <h2 class="t-headline">Lo que siempre<br>nos <em>preguntan</em></h2>
+    </div>
+    <div class="faq-list">
+      <div class="glass-flat faq-item reveal d1">
+        <button class="faq-q" onclick="faq(this)" aria-expanded="false">¿Trabajan solo con empresas grandes?<span class="faq-chevron"></span></button>
+        <div class="faq-a"><p>No. Trabajamos con empresas de 10 a 500 empleados. Lo importante no es el tamaño, sino la disposición al cambio y la claridad sobre los objetivos.</p></div>
+      </div>
+      <div class="glass-flat faq-item reveal d2">
+        <button class="faq-q" onclick="faq(this)" aria-expanded="false">¿Cuánto tiempo toma ver resultados?<span class="faq-chevron"></span></button>
+        <div class="faq-a"><p>Los primeros resultados visibles aparecen entre la semana 4 y 6. La transformación cultural profunda toma entre 3 y 6 meses, dependiendo de la complejidad organizacional.</p></div>
+      </div>
+      <div class="glass-flat faq-item reveal d3">
+        <button class="faq-q" onclick="faq(this)" aria-expanded="false">¿Necesitamos un equipo técnico?<span class="faq-chevron"></span></button>
+        <div class="faq-a"><p>No. Nos integramos con tu equipo actual, sea cual sea su nivel técnico. Capacitamos mientras implementamos: el conocimiento queda en tu organización.</p></div>
+      </div>
+      <div class="glass-flat faq-item reveal d4">
+        <button class="faq-q" onclick="faq(this)" aria-expanded="false">¿Cómo manejan la confidencialidad de datos?<span class="faq-chevron"></span></button>
+        <div class="faq-a"><p>Firmamos NDAs antes del diagnóstico. Usamos infraestructura segura y cumplimos con normativas locales e internacionales de protección de datos.</p></div>
+      </div>
+      <div class="glass-flat faq-item reveal d5">
+        <button class="faq-q" onclick="faq(this)" aria-expanded="false">¿Qué pasa si no funciona?<span class="faq-chevron"></span></button>
+        <div class="faq-a"><p>Nuestros contratos incluyen períodos de evaluación claros. Si no ves valor en los plazos acordados, puedes salir sin penalizaciones. Creemos en relaciones de confianza.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CTA BAND ═══════════════════ -->
+<div class="cta-band reveal">
+  <div style="max-width:640px;margin:0 auto">
+    <span class="t-eyebrow" style="display:block;margin-bottom:18px">¿Listo para empezar?</span>
+    <h2 class="t-headline" style="font-size:clamp(28px,4vw,48px);margin-bottom:18px">30 minutos que pueden<br><em>cambiar tu operación</em></h2>
+    <p style="color:var(--haze);font-size:13.5px;margin-bottom:32px;line-height:1.8">Sin compromiso. Sin jerga técnica. Solo una conversación honesta sobre si la IA puede ayudarte y cómo.</p>
+    <a href="#contacto" class="btn btn-jade btn-arrow" style="font-size:14px;padding:15px 32px">Agendar diagnóstico gratuito</a>
+  </div>
+</div>
+
+<!-- ═══════════════════ CONTACT ═══════════════════ -->
+<section id="contacto">
+  <div class="wrap">
+    <div class="sec-hd reveal">
+      <span class="t-eyebrow">Contacto</span>
+      <h2 class="t-headline">Empecemos la <em>conversación</em></h2>
+      <p class="t-sub">Sin compromiso. Te respondemos en menos de 24 horas.</p>
+    </div>
+    <div class="contact-row">
+
+      <!-- FORM → Formspree -->
+      <div class="contact-form-col reveal-l">
+        <div class="glass">
+          <form class="contact-form-inner" id="contact-form" action="https://formspree.io/f/xeedagog" method="POST">
+            <div>
+              <label class="field-label" for="cf-name">Nombre completo</label>
+              <input id="cf-name" name="name" type="text" class="field" placeholder="Ana García" required/>
+            </div>
+            <div>
+              <label class="field-label" for="cf-email">Correo electrónico</label>
+              <input id="cf-email" name="email" type="email" class="field" placeholder="ana@empresa.com" required/>
+            </div>
+            <div>
+              <label class="field-label" for="cf-company">Empresa</label>
+              <input id="cf-company" name="company" type="text" class="field" placeholder="Mi Empresa S.A.C."/>
+            </div>
+            <div>
+              <label class="field-label" for="cf-level">Nivel de interés</label>
+              <select id="cf-level" name="nivel" class="field" style="cursor:pointer;appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2356708A' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 14px center">
+                <option value="" style="background:var(--ink-mid)">Selecciona un nivel…</option>
+                <option style="background:var(--ink-mid)">Nivel 1 — Implementación Táctica</option>
+                <option style="background:var(--ink-mid)">Nivel 2 — Estrategia Operativa</option>
+                <option style="background:var(--ink-mid)">Nivel 3 — Transformación Cultural</option>
+                <option style="background:var(--ink-mid)">No lo sé aún</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="cf-msg">¿Qué desafío quieres resolver con IA?</label>
+              <textarea id="cf-msg" name="message" class="field" rows="4" style="resize:vertical" placeholder="Cuéntanos brevemente tu situación actual…" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-jade" style="width:100%;justify-content:center;padding:14px" id="cf-submit">
+              <span id="cf-btn-text">Enviar mensaje</span>
+              <span id="cf-spinner" style="display:none;width:16px;height:16px;border:2px solid rgba(8,12,20,.3);border-top-color:var(--ink);border-radius:50%;animation:spin .7s linear infinite"></span>
+            </button>
+            <div class="form-success" id="cf-success">
+              ✓ ¡Mensaje enviado! Te responderemos en menos de 24 horas.
+            </div>
+            <p class="form-note">Al enviar aceptas nuestra política de privacidad. Sin spam.</p>
+          </form>
+        </div>
+      </div>
+
+      <!-- INFO -->
+      <div class="contact-info-col reveal-r">
+        <div class="contact-info-item">
+          <div class="ci-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--jade)" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <div>
+            <div class="ci-label">Email</div>
+            <a href="mailto:holobionteia@gmail.com" class="ci-value" style="color:var(--jade)">holobionteia@gmail.com</a>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="ci-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--jade)" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.08 6.08l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.03z"/></svg>
+          </div>
+          <div>
+            <div class="ci-label">WhatsApp</div>
+            <a href="https://wa.me/51978799823" target="_blank" rel="noopener" class="ci-value" style="color:var(--jade)">+51 978 799 823</a>
+          </div>
+        </div>
+        <div class="contact-info-item">
+          <div class="ci-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--jade)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div>
+            <div class="ci-label">Agenda una llamada</div>
+            <a href="#contacto" class="ci-link">Reservar 30 min gratis <span>→</span></a>
+          </div>
+        </div>
+        <div class="contact-info-item" style="border:none">
+          <div class="ci-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--jade)" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <div>
+            <div class="ci-label">Ubicación</div>
+            <div class="ci-value" style="font-size:13px;color:var(--haze)">Lima, Perú · Trabajando<br>remotamente con el mundo</div>
+          </div>
+        </div>
+        <div style="margin-top:8px">
+          <div class="ci-label" style="margin-bottom:12px">Redes sociales</div>
+          <div class="social-row">
+            <a href="#" class="social-btn" aria-label="LinkedIn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+            </a>
+            <a href="#" class="social-btn" aria-label="Twitter / X">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
+            </a>
+            <a href="#" class="social-btn" aria-label="Instagram">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div style="font-family:var(--font-serif);font-size:18px;font-weight:300;color:var(--snow);display:flex;align-items:center;gap:8px">
+          Holobionte <span style="width:5px;height:5px;border-radius:50%;background:var(--jade);display:inline-block"></span>
+        </div>
+        <p>Consultoría remota de inteligencia artificial para organizaciones que quieren crecer.</p>
+      </div>
+      <nav class="footer-nav" aria-label="Navegación de pie de página">
+        <a href="#servicios">Servicios</a>
+        <a href="#metodologia">Metodología</a>
+        <a href="#casos">Casos</a>
+        <a href="#sobre">Sobre</a>
+        <a href="#contacto">Contacto</a>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2025 Holobionte IA. Lima, Perú.</p>
+      <div class="footer-legal">
+        <a href="#">Privacidad</a>
+        <a href="#">Términos</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ════════════════════════════════════
+   NEURAL CANVAS
+════════════════════════════════════ */
+(function(){
+  const cv=document.getElementById('cv');
+  const ctx=cv.getContext('2d');
+  let W,H,dpr,pts,raf,mx=-9999,my=-9999,scroll=0;
+  const mob=window.innerWidth<768;
+  const rm=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  function resize(){
+    dpr=Math.min(devicePixelRatio||1,2);
+    W=innerWidth;H=innerHeight;
+    cv.width=W*dpr;cv.height=H*dpr;
+    cv.style.width=W+'px';cv.style.height=H+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+
+  function init(){
+    const n=mob?40:Math.min(Math.max(Math.floor(W*H/18000),40),90);
+    pts=Array.from({length:n},()=>({
+      x:Math.random()*W,y:Math.random()*H,
+      vx:(Math.random()-.5)*.28,vy:(Math.random()-.5)*.28,
+      r:1+Math.random()*1.2,ph:Math.random()
+    }));
+  }
+
+  let f=0;
+  function draw(){
+    raf=requestAnimationFrame(draw);
+    if(rm&&++f%6!==0)return;
+    ctx.clearRect(0,0,W,H);
+    const D=140,M=170,n=pts.length;
+
+    for(let i=0;i<n;i++){
+      const p=pts[i];
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0)p.x=W;if(p.x>W)p.x=0;
+      if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+      if(!mob){const dx=p.x-mx,dy=p.y-my,d=Math.sqrt(dx*dx+dy*dy);if(d<M&&d>0){const f=(M-d)/M*.5;p.x+=dx/d*f;p.y+=dy/d*f;}}
+    }
+
+    for(let i=0;i<n;i++){
+      for(let j=i+1;j<n;j++){
+        const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);
+        if(d<D){
+          const t=(pts[i].ph+pts[j].ph)/2*.4+scroll*.6;
+          const [r,g,b]=t<.5?[0,Math.round(200-200*t*2),Math.round(150-150*t*2)]:[Math.round(232*((t-.5)*2)),Math.round(160*((t-.5)*2)),0];
+          ctx.strokeStyle=`rgba(${r},${g},${b},${(1-d/D)*.16})`;
+          ctx.lineWidth=.65;
+          ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.stroke();
+        }
+      }
+    }
+
+    for(let i=0;i<n;i++){
+      const p=pts[i];
+      const t=p.ph*.4+scroll*.6;
+      const col=t<.5?`rgba(0,${Math.round(200-200*t*2)},${Math.round(150-150*t*2)}`:`rgba(${Math.round(232*((t-.5)*2))},${Math.round(160*((t-.5)*2))},0`;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=col+`,.85)`;ctx.fill();
+    }
+  }
+
+  resize();init();draw();
+  window.addEventListener('resize',()=>{resize();init()},{passive:true});
+  if(!mob)window.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY},{passive:true});
+  window.addEventListener('scroll',()=>{
+    const s=scrollY,h=document.documentElement.scrollHeight-innerHeight;
+    scroll=h>0?s/h:0;
+    updateMeto();
+  },{passive:true});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelAnimationFrame(raf);else draw();});
+})();
+
+/* ════════════════════════════════════
+   NAVBAR
+════════════════════════════════════ */
+const navEl=document.getElementById('nav');
+const navAs=document.querySelectorAll('.nav-links a');
+const secs=['servicios','metodologia','diferencial','sectores','proceso','sobre','casos','recursos','faq','contacto'];
+
+window.addEventListener('scroll',()=>{
+  navEl.classList.toggle('stuck',scrollY>70);
+  const pos=scrollY+innerHeight/3;
+  let cur='';
+  for(let i=secs.length-1;i>=0;i--){const el=document.getElementById(secs[i]);if(el&&el.offsetTop<=pos){cur=secs[i];break;}}
+  navAs.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+cur));
+},{passive:true});
+
+/* ════════════════════════════════════
+   MOBILE MENU
+════════════════════════════════════ */
+const mob=document.getElementById('mob');
+const burger=document.getElementById('burger');
+burger.addEventListener('click',()=>{
+  mob.classList.add('open');
+  burger.setAttribute('aria-expanded','true');
+  burger.querySelectorAll('span')[0].style.transform='rotate(45deg) translate(3px,4px)';
+  burger.querySelectorAll('span')[1].style.opacity='0';
+  burger.querySelectorAll('span')[2].style.transform='rotate(-45deg) translate(3px,-4px)';
+});
+function closeMob(){
+  mob.classList.remove('open');
+  burger.setAttribute('aria-expanded','false');
+  burger.querySelectorAll('span').forEach(s=>{s.style.transform='';s.style.opacity='';});
+}
+document.getElementById('mob-close').addEventListener('click',closeMob);
+
+/* ════════════════════════════════════
+   SCROLL REVEAL
+════════════════════════════════════ */
+const io=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});
+},{threshold:.1,rootMargin:'0px 0px -36px 0px'});
+document.querySelectorAll('.reveal,.reveal-l,.reveal-r').forEach(el=>io.observe(el));
+
+/* ════════════════════════════════════
+   METHODOLOGY HORIZONTAL SCROLL
+════════════════════════════════════ */
+const metoSec=document.getElementById('metodologia');
+const metoTrack=document.getElementById('meto-track');
+const metoBar=document.getElementById('meto-bar');
+
+function updateMeto(){
+  if(!metoSec||!metoTrack)return;
+  const rect=metoSec.getBoundingClientRect();
+  const h=metoSec.offsetHeight-innerHeight;
+  if(h<=0)return;
+  const p=Math.max(0,Math.min(1,-rect.top/h));
+  const px=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--px'))||72;
+  const total=metoTrack.scrollWidth-innerWidth+px*2;
+  metoTrack.style.transform=`translateX(${-total*p}px)`;
+  if(metoBar)metoBar.style.transform=`scaleX(${p})`;
+}
+
+/* ════════════════════════════════════
+   FAQ
+════════════════════════════════════ */
+function faq(btn){
+  const item=btn.closest('.faq-item');
+  const isOpen=item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(i=>{
+    i.classList.remove('open');
+    i.querySelector('.faq-q').setAttribute('aria-expanded','false');
+  });
+  if(!isOpen){item.classList.add('open');btn.setAttribute('aria-expanded','true');}
+}
+
+/* ════════════════════════════════════
+   CONTACT FORM (Formspree)
+════════════════════════════════════ */
+document.getElementById('contact-form').addEventListener('submit',async function(e){
+  e.preventDefault();
+  const btn=document.getElementById('cf-submit');
+  const txt=document.getElementById('cf-btn-text');
+  const sp=document.getElementById('cf-spinner');
+  const suc=document.getElementById('cf-success');
+  btn.disabled=true;txt.textContent='Enviando…';sp.style.display='inline-block';
+  try{
+    const res=await fetch(this.action,{method:'POST',body:new FormData(this),headers:{Accept:'application/json'}});
+    if(res.ok){
+      this.reset();
+      txt.textContent='¡Enviado!';sp.style.display='none';
+      suc.style.display='flex';
+      setTimeout(()=>{btn.disabled=false;txt.textContent='Enviar mensaje';suc.style.display='none';},5000);
+    }else{
+      txt.textContent='Error — intenta de nuevo';sp.style.display='none';
+      setTimeout(()=>{btn.disabled=false;txt.textContent='Enviar mensaje';},3000);
+    }
+  }catch{
+    txt.textContent='Error de red';sp.style.display='none';
+    setTimeout(()=>{btn.disabled=false;txt.textContent='Enviar mensaje';},3000);
+  }
+});
+
+/* ════════════════════════════════════
+   RESOURCES BUTTON
+════════════════════════════════════ */
+function resBtn(btn){
+  const t=btn.textContent;btn.textContent='✓ ¡Recursos enviados!';btn.style.background='var(--jade-dk)';
+  setTimeout(()=>{btn.textContent=t;btn.style.background='';},3000);
+}
+
+/* ════════════════════════════════════
+   SMOOTH NAV LINKS
+════════════════════════════════════ */
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    const id=a.getAttribute('href').slice(1);
+    const el=document.getElementById(id);
+    if(!el)return;
+    e.preventDefault();
+    const offset=id==='hero'?0:66;
+    window.scrollTo({top:el.getBoundingClientRect().top+scrollY-offset,behavior:'smooth'});
+  });
+});
+</script>
+</body>
+</html>
